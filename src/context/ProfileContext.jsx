@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { getProfile, updateProfile, getHistory, authLogin } from '../services/api';
 
 const ProfileContext = createContext(null);
 
@@ -11,160 +12,157 @@ const DEFAULT_PROFILE = {
   onboardingComplete: true,
 };
 
-const DEFAULT_RECENT_CHECKS = [
-  {
-    id: 'chk-1',
-    name: 'Chocolate Bar',
-    brand: 'SweetCraft',
-    barcode: '8000500310427',
-    verdict: 'risk',
-    statusText: 'Potential concern',
-    flagCount: 2,
-    timestamp: '15m ago',
-    image: 'https://images.unsplash.com/photo-1582293041079-7814c2f12063?w=500&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'chk-2',
-    name: 'Protein Cereal',
-    brand: 'PureGrain',
-    barcode: '030000010204',
-    verdict: 'safe',
-    statusText: 'No relevant concerns found',
-    flagCount: 0,
-    timestamp: '2h ago',
-    image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'chk-3',
-    name: 'Instant Noodles',
-    brand: 'NoodleHouse',
-    barcode: '5449000000996',
-    verdict: 'caution',
-    statusText: 'Review recommended',
-    flagCount: 1,
-    timestamp: 'Yesterday',
-    image: 'https://images.unsplash.com/photo-1568471173242-461f0a730452?w=500&auto=format&fit=crop&q=80',
-  },
-];
-
-const STORAGE_KEY = 'nutrilens_user_profile_v3';
-const AUTH_KEY = 'nutrilens_auth_status_v1';
-const RECENT_KEY = 'nutrilens_recent_checks_v1';
-
 export function ProfileProvider({ children }) {
-  const [profile, setProfile] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('[ProfileContext] Error reading profile from localStorage:', e);
-    }
-    return DEFAULT_PROFILE;
-  });
+  const [profile, setProfileState] = useState(DEFAULT_PROFILE);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Authenticated demo user
+  const [authToken, setAuthToken] = useState(null);
+  const [recentChecks, setRecentChecks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try {
-      const auth = localStorage.getItem(AUTH_KEY);
-      if (auth !== null) {
-        return JSON.parse(auth);
-      }
-    } catch (e) {
-      console.warn('[ProfileContext] Error reading auth from localStorage:', e);
-    }
-    return false; // unauthenticated by default so landing page is shown first
-  });
+  const initialLoadDone = useRef(false);
 
-  const [recentChecks, setRecentChecks] = useState(() => {
-    try {
-      const saved = localStorage.getItem(RECENT_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('[ProfileContext] Error reading recent checks:', e);
-    }
-    return DEFAULT_RECENT_CHECKS;
-  });
-
+  // Load profile and history from MongoDB API on mount
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-    } catch (e) {
-      console.warn('[ProfileContext] Error saving profile:', e);
-    }
-  }, [profile]);
+    let isMounted = true;
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(AUTH_KEY, JSON.stringify(isAuthenticated));
-    } catch (e) {
-      console.warn('[ProfileContext] Error saving auth status:', e);
-    }
-  }, [isAuthenticated]);
+    async function loadInitialData() {
+      try {
+        setIsLoading(true);
+        // 1. Fetch Profile from Mongo API
+        const profileData = await getProfile(authToken);
+        if (isMounted && profileData) {
+          setProfileState((prev) => ({
+            ...prev,
+            ...profileData,
+            onboardingComplete: profileData.onboardingComplete !== false,
+          }));
+        }
+      } catch (err) {
+        console.warn('[ProfileContext] Error loading profile from API:', err.message);
+      }
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(RECENT_KEY, JSON.stringify(recentChecks));
-    } catch (e) {
-      console.warn('[ProfileContext] Error saving recent checks:', e);
+      try {
+        // 2. Fetch Scan History from Mongo API
+        const historyData = await getHistory(authToken);
+        if (isMounted && Array.isArray(historyData)) {
+          setRecentChecks(historyData);
+        }
+      } catch (err) {
+        console.warn('[ProfileContext] Error loading history from API:', err.message);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+          initialLoadDone.current = true;
+        }
+      }
     }
-  }, [recentChecks]);
 
-  const signIn = (email, password) => {
-    // Client-side authentication persistence
-    setIsAuthenticated(true);
-    setProfile((prev) => ({
-      ...prev,
-      email: email || prev.email || 'user@nutrilens.app',
-      name: prev.name || (email ? email.split('@')[0] : 'Yunus'),
-      onboardingComplete: true,
-    }));
-    return true;
+    loadInitialData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authToken]);
+
+  // Persist profile changes to MongoDB API
+  const persistProfile = async (newProfile) => {
+    try {
+      await updateProfile(newProfile, authToken);
+    } catch (err) {
+      console.warn('[ProfileContext] Error saving profile to API:', err.message);
+    }
+  };
+
+  const refreshHistory = async () => {
+    try {
+      const historyData = await getHistory(authToken);
+      if (Array.isArray(historyData)) {
+        setRecentChecks(historyData);
+      }
+    } catch (err) {
+      console.warn('[ProfileContext] Error refreshing history:', err.message);
+    }
+  };
+
+  const signIn = async (email, password) => {
+    try {
+      const res = await authLogin(email, password);
+      if (res.token) {
+        setAuthToken(res.token);
+      }
+      if (res.user) {
+        setProfileState((prev) => ({
+          ...prev,
+          ...res.user,
+        }));
+      }
+      setIsAuthenticated(true);
+      return true;
+    } catch (err) {
+      console.warn('[ProfileContext] Sign in API error, proceeding with demo session:', err.message);
+      setIsAuthenticated(true);
+      setProfileState((prev) => ({
+        ...prev,
+        email: email || prev.email || 'user@nutrilens.app',
+        name: prev.name || (email ? email.split('@')[0] : 'Yunus'),
+        onboardingComplete: true,
+      }));
+      return true;
+    }
   };
 
   const signOut = () => {
     setIsAuthenticated(false);
+    setAuthToken(null);
   };
 
   const addRecentCheck = (check) => {
-    setRecentChecks((prev) => [
-      {
-        id: `chk-${Date.now()}`,
-        name: check.product?.name || check.name || 'Food Product',
-        brand: check.product?.brand || check.brand || 'Brand',
-        barcode: check.product?.barcode || check.barcode || null,
-        verdict: check.verdict || 'safe',
-        statusText:
-          check.verdict === 'risk'
-            ? 'Potential concern'
-            : check.verdict === 'caution'
-            ? 'Review recommended'
-            : 'No relevant concerns found',
-        flagCount: check.findings?.filter((f) => f.severity !== 'safe').length || 0,
-        timestamp: 'Just now',
-        image: check.product?.image || null,
-      },
-      ...prev.slice(0, 9),
-    ]);
+    const newEntry = {
+      id: check.id || `chk-${Date.now()}`,
+      name: check.product?.name || check.name || 'Food Product',
+      brand: check.product?.brand || check.brand || 'Brand',
+      barcode: check.product?.barcode || check.barcode || null,
+      verdict: check.verdict || 'safe',
+      statusText:
+        check.verdict === 'risk'
+          ? 'Potential concern'
+          : check.verdict === 'caution'
+          ? 'Review recommended'
+          : 'No relevant concerns found',
+      flagCount: check.findings?.filter((f) => f.severity && f.severity !== 'safe').length || 0,
+      timestamp: 'Just now',
+      image: check.product?.image || null,
+      createdAt: new Date().toISOString(),
+    };
+
+    setRecentChecks((prev) => [newEntry, ...prev.slice(0, 19)]);
   };
 
   const setName = (name) => {
-    setProfile((prev) => ({ ...prev, name }));
+    setProfileState((prev) => {
+      const updated = { ...prev, name };
+      persistProfile(updated);
+      return updated;
+    });
   };
 
   const setAge = (age) => {
-    setProfile((prev) => ({ ...prev, age }));
+    setProfileState((prev) => {
+      const updated = { ...prev, age };
+      persistProfile(updated);
+      return updated;
+    });
   };
 
   const toggleAllergy = (allergyId) => {
-    setProfile((prev) => {
+    setProfileState((prev) => {
       const exists = prev.allergies.includes(allergyId);
-      const updated = exists
+      const updatedAllergies = exists
         ? prev.allergies.filter((id) => id !== allergyId)
         : [...prev.allergies, allergyId];
-      return { ...prev, allergies: updated };
+      const updated = { ...prev, allergies: updatedAllergies };
+      persistProfile(updated);
+      return updated;
     });
   };
 
@@ -173,9 +171,9 @@ export function ProfileProvider({ children }) {
     if (!trimmed) return;
     const id = `custom_${trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
 
-    setProfile((prev) => {
+    setProfileState((prev) => {
       if (prev.customAllergens?.some((a) => a.id === id)) return prev;
-      return {
+      const updated = {
         ...prev,
         customAllergens: [
           ...(prev.customAllergens || []),
@@ -189,43 +187,59 @@ export function ProfileProvider({ children }) {
         ],
         allergies: [...prev.allergies, id],
       };
+      persistProfile(updated);
+      return updated;
     });
   };
 
   const removeCustomAllergen = (id) => {
-    setProfile((prev) => ({
-      ...prev,
-      customAllergens: (prev.customAllergens || []).filter((a) => a.id !== id),
-      allergies: prev.allergies.filter((item) => item !== id),
-    }));
+    setProfileState((prev) => {
+      const updated = {
+        ...prev,
+        customAllergens: (prev.customAllergens || []).filter((a) => a.id !== id),
+        allergies: prev.allergies.filter((item) => item !== id),
+      };
+      persistProfile(updated);
+      return updated;
+    });
   };
 
   const toggleCondition = (conditionId) => {
     if (conditionId === 'none') {
-      setProfile((prev) => ({ ...prev, conditions: [] }));
+      setProfileState((prev) => {
+        const updated = { ...prev, conditions: [] };
+        persistProfile(updated);
+        return updated;
+      });
       return;
     }
 
-    setProfile((prev) => {
+    setProfileState((prev) => {
       const exists = prev.conditions.includes(conditionId);
-      const updated = exists
+      const updatedConditions = exists
         ? prev.conditions.filter((id) => id !== conditionId)
         : [...prev.conditions, conditionId];
-      return { ...prev, conditions: updated };
+      const updated = { ...prev, conditions: updatedConditions };
+      persistProfile(updated);
+      return updated;
     });
   };
 
   const completeOnboarding = () => {
-    setProfile((prev) => ({
-      ...prev,
-      onboardingComplete: true,
-      hasCompletedOnboarding: true,
-    }));
+    setProfileState((prev) => {
+      const updated = {
+        ...prev,
+        onboardingComplete: true,
+        hasCompletedOnboarding: true,
+      };
+      persistProfile(updated);
+      return updated;
+    });
     setIsAuthenticated(true);
   };
 
   const resetProfile = () => {
-    setProfile({
+    const reset = {
       name: '',
       age: '',
       allergies: [],
@@ -233,7 +247,14 @@ export function ProfileProvider({ children }) {
       conditions: [],
       onboardingComplete: false,
       hasCompletedOnboarding: false,
-    });
+    };
+    setProfileState(reset);
+    persistProfile(reset);
+  };
+
+  const setProfile = (newProfile) => {
+    setProfileState(newProfile);
+    persistProfile(newProfile);
   };
 
   return (
@@ -242,9 +263,11 @@ export function ProfileProvider({ children }) {
         profile,
         isAuthenticated,
         recentChecks,
+        isLoading,
         signIn,
         signOut,
         addRecentCheck,
+        refreshHistory,
         setName,
         setAge,
         toggleAllergy,
@@ -268,4 +291,3 @@ export function useProfile() {
   }
   return context;
 }
-

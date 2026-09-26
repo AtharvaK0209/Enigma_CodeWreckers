@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScanLine, Camera, AlertCircle, RefreshCw, ArrowLeft, SearchX, EyeOff, ShieldCheck } from 'lucide-react';
+import { ScanLine, Camera, AlertCircle, RefreshCw, ArrowLeft, SearchX, EyeOff, ShieldCheck, HelpCircle } from 'lucide-react';
 import BarcodeScanner from '../../components/BarcodeScanner';
 import ImageUpload from '../../components/ImageUpload';
 import { useAnalysis } from '../../context/AnalysisContext';
@@ -172,6 +172,13 @@ export default function AnalyzeScreen({ onNavigate }) {
                 >
                   <ScanLine size={14} />
                   <span>Try Barcode Instead</span>
+                </button>
+                <button
+                  className="btn-pill-secondary"
+                  onClick={() => onNavigate('/clarify')}
+                >
+                  <HelpCircle size={14} />
+                  <span>Answer 3 Quick Questions</span>
                 </button>
               </div>
             </div>

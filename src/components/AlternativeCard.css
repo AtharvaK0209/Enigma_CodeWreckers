@@ -1,0 +1,99 @@
+.alternative-product-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.alternative-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.alt-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.alt-card-brand {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+}
+
+.alt-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: var(--verdict-safe-pill-bg, #E8F5E9);
+  color: var(--verdict-safe-pill-text, #1B5E20);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.alt-sparkle-icon {
+  flex-shrink: 0;
+}
+
+.alt-card-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.alt-card-img {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #F3F1EB;
+}
+
+.alt-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.alt-card-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.alt-card-reason {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.alt-card-nutrition {
+  display: flex;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.alt-nutri-item {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  background: #F3F1EB;
+  padding: 2px 8px;
+  border-radius: 4px;
+}

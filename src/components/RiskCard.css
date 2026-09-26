@@ -116,6 +116,43 @@
   color: var(--text-primary);
 }
 
+.source-actions-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.evidence-source-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.evidence-tag-off {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803D;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.evidence-tag-image {
+  background: rgba(134, 25, 143, 0.10);
+  color: #86198F;
+  border: 1px solid rgba(134, 25, 143, 0.25);
+}
+
+.evidence-tag-user_confirmed {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1D4ED8;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
 .source-expanded-drawer {
   background: #F3F1EA;
   border-radius: var(--radius-sm);

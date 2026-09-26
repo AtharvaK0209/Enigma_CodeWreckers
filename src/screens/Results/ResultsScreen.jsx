@@ -15,10 +15,12 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import RiskCard from '../../components/RiskCard';
+import AlternativeCard from '../../components/AlternativeCard';
 import PillButton from '../../components/common/PillButton';
 import Card from '../../components/common/Card';
 import { useAnalysis } from '../../context/AnalysisContext';
 import { useProfile } from '../../context/ProfileContext';
+import { getAlternatives } from '../../services/api';
 import './ResultsScreen.css';
 
 // Verified safer alternatives knowledge base for Mission 8
@@ -199,12 +201,47 @@ export default function ResultsScreen({ onNavigate }) {
     ? "We couldn't read this clearly — try a clearer photo"
     : "Some details might be missing — worth checking the label";
 
-  // Mission 8: Safer Alternatives determination
-  const primaryKey = activeResult.product?.primaryAllergenKey ||
-    (activeResult.findings?.find(f => f.severity === 'risk')?.trigger?.toLowerCase().includes('nut') ? 'tree_nuts' : null);
-  const alternativesList = (activeResult.verdict !== 'safe' && primaryKey)
-    ? VERIFIED_ALTERNATIVES[primaryKey]
-    : null;
+  // Mission 5: Safer Alternatives determination & API sync
+  const [alternativesList, setAlternativesList] = useState(() => {
+    if (params.get('state') === 'flagged_empty' || params.get('alts') === 'none') {
+      return [];
+    }
+    const primaryKey = activeResult.product?.primaryAllergenKey ||
+      (activeResult.findings?.find(f => f.severity === 'risk')?.trigger?.toLowerCase().includes('nut') ? 'tree_nuts' : null);
+    return (activeResult.verdict !== 'safe' && primaryKey)
+      ? VERIFIED_ALTERNATIVES[primaryKey] || []
+      : [];
+  });
+
+  useEffect(() => {
+    let isCurrent = true;
+    if (activeResult.verdict === 'safe' || stateParam === 'safe') {
+      setAlternativesList([]);
+      return;
+    }
+    if (params.get('state') === 'flagged_empty' || params.get('alts') === 'none') {
+      setAlternativesList([]);
+      return;
+    }
+
+    async function fetchAlternatives() {
+      try {
+        const data = await getAlternatives(activeResult.product, profile);
+        if (isCurrent && data) {
+          if (data.status === 'no_verified_alternative' || !data.hasAlternatives || !data.alternatives?.length) {
+            setAlternativesList([]);
+          } else {
+            setAlternativesList(data.alternatives);
+          }
+        }
+      } catch (err) {
+        console.warn('[ResultsScreen] Error fetching alternatives from API:', err);
+      }
+    }
+
+    fetchAlternatives();
+    return () => { isCurrent = false; };
+  }, [activeResult, profile]);
 
   return (
     <div className="results-screen anim-spring-pop">
@@ -253,6 +290,15 @@ export default function ResultsScreen({ onNavigate }) {
           <div className="data-quality-pill-banner anim-spring-pop">
             <Info size={14} className="dq-icon" />
             <span className="dq-message-text">{dataQualityText}</span>
+            {(activeDataQuality === 'clearer_photo' || activeDataQuality === 'low') && (
+              <button
+                type="button"
+                className="dq-clarify-link-btn"
+                onClick={() => onNavigate('/clarify')}
+              >
+                Clarify label &rarr;
+              </button>
+            )}
           </div>
         )}
       </section>
@@ -307,34 +353,36 @@ export default function ResultsScreen({ onNavigate }) {
               evidence={finding.evidence}
               trigger={finding.trigger}
               source={finding.source}
+              evidenceSource={finding.evidenceSource || (['off', 'image', 'user_confirmed'].includes(finding.source) ? finding.source : null)}
             />
           ))}
         </div>
       </section>
 
-      {/* Mission 8: Verified Safer Alternatives */}
+      {/* Mission 5: Verified Safer Alternatives ("Better options for your profile") */}
       {activeResult.verdict !== 'safe' && (
         <section className="alternatives-section">
           <div className="alternatives-header">
             <Sparkles size={18} color="#163A1D" />
-            <h2 className="alternatives-title">Safer Alternatives</h2>
+            <h2 className="alternatives-title">Better options for your profile</h2>
           </div>
 
           {alternativesList && alternativesList.length > 0 ? (
-            <div className="alternatives-grid">
+            <div className="alternatives-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
               {alternativesList.map((alt, i) => (
-                <Card key={i} className="alt-product-card">
-                  <div className="alt-header">
-                    <span className="alt-brand">{alt.brand}</span>
-                    <span className="alt-pill">{alt.tag}</span>
-                  </div>
-                  <h3 className="alt-name">{alt.name}</h3>
-                  <p className="alt-reason">{alt.reason}</p>
-                </Card>
+                <AlternativeCard
+                  key={alt.id || i}
+                  name={alt.name}
+                  brand={alt.brand}
+                  image={alt.image}
+                  tag={alt.tag || 'Certified Safe Option'}
+                  reason={alt.reason}
+                  nutrition={alt.nutrition}
+                />
               ))}
             </div>
           ) : (
-            /* Honest empty state per Mission 8 constraints */
+            /* Honest empty state per Mission 5 constraints */
             <Card className="honest-no-alternative-card">
               <p className="no-alt-text">
                 We couldn't find a verified alternative for this product yet.

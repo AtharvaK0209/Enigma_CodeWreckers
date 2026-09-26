@@ -1,0 +1,413 @@
+/* ClarifyScreen.css — Mission 7 Clarification Question Flow */
+
+.clarify-screen {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Top Nav */
+.clarify-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.clarify-limit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.clarify-limit-badge svg {
+  color: var(--verdict-safe-accent);
+}
+
+/* 3-Step Progress Bar */
+.clarify-progress-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clarify-progress-segments {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.clarify-progress-segment {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.08);
+  transition: background var(--duration-normal) var(--ease-smooth);
+}
+
+.clarify-progress-segment.active {
+  background: var(--btn-primary-bg);
+}
+
+.clarify-progress-segment.completed {
+  background: var(--verdict-safe-accent);
+}
+
+.clarify-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.clarify-progress-labels .active-label {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* Main Card */
+.clarify-card {
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.clarify-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clarify-step-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.clarify-question-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+/* Context / Hint Box */
+.clarify-hint-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #F7F5EE;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+
+.clarify-hint-icon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.clarify-hint-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* Yes / No Options Grid */
+.clarify-yesno-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.clarify-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 12px;
+  padding: 20px 18px;
+  background: var(--bg-surface-subtle);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.clarify-choice-btn:hover {
+  background: var(--bg-surface);
+  border-color: rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.clarify-choice-btn.selected {
+  background: var(--bg-surface);
+  border-color: var(--btn-primary-bg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.clarify-choice-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.choice-yes .clarify-choice-icon-wrap {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803D;
+}
+
+.choice-no .clarify-choice-icon-wrap {
+  background: rgba(239, 68, 68, 0.12);
+  color: #B91C1C;
+}
+
+.clarify-choice-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clarify-choice-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.clarify-choice-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Allergen Picker Step */
+.clarify-allergen-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.clarify-none-declared-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-surface-subtle);
+  border: 2px dashed rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.clarify-none-declared-card:hover {
+  background: var(--bg-surface);
+  border-color: var(--btn-primary-bg);
+}
+
+.clarify-none-declared-card.active {
+  background: var(--verdict-safe-subtle);
+  border: 2px solid var(--verdict-safe-accent);
+}
+
+.clarify-none-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.clarify-none-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.clarify-allergen-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.clarify-selection-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Terminal Outcome: Needs New Photo */
+.clarify-terminal-card {
+  padding: 32px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.terminal-icon-bubble {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.terminal-icon-bubble.bubble-warning {
+  background: #FFFBEB;
+  color: #B45309;
+  border: 2px solid rgba(245, 158, 11, 0.2);
+}
+
+.terminal-icon-bubble.bubble-success {
+  background: #F0FDF4;
+  color: #15803D;
+  border: 2px solid rgba(34, 197, 94, 0.2);
+}
+
+.terminal-headline {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.terminal-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 480px;
+}
+
+.terminal-tips-box {
+  background: var(--bg-surface-subtle);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  text-align: left;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.terminal-tips-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.terminal-tips-list {
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.terminal-actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 8px;
+}
+
+/* Outcome: Final Result Summary Preview */
+.clarify-result-preview {
+  background: var(--bg-surface-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  width: 100%;
+  max-width: 480px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border-subtle);
+}
+
+.preview-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.preview-verdict-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.tag-risk {
+  background: var(--verdict-risk-surface);
+  color: var(--verdict-risk-text);
+}
+
+.tag-safe {
+  background: var(--verdict-safe-surface);
+  color: var(--verdict-safe-text);
+}
+
+.preview-product-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.preview-data-safeguard {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .clarify-screen {
+    padding: 12px 14px 80px;
+  }
+
+  .clarify-card {
+    padding: 20px 16px;
+  }
+
+  .clarify-yesno-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clarify-question-title {
+    font-size: 20px;
+  }
+}
