@@ -5,8 +5,8 @@ const DEMO_USER_ID = 'demo-user-123';
 
 /**
  * Authentication middleware
- * Enforces req.userId contract across all routes.
- * Supports Bearer JWT tokens, and falls back to DEMO_USER_ID for demo mode.
+ * Enforces real authenticated session on protected routes.
+ * Decodes Bearer JWT token to establish req.userId.
  */
 export function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -15,23 +15,22 @@ export function authenticate(req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      req.userId = decoded.userId || decoded.id || DEMO_USER_ID;
+      req.userId = decoded.userId || decoded.id;
       req.user = decoded;
       return next();
     } catch (err) {
-      // If token is invalid and we are in strict mode, reject
-      if (req.headers['x-strict-auth'] === 'true') {
-        return res.status(401).json({ error: 'Invalid or expired authentication token.' });
-      }
-      // Demo fallback
-      req.userId = DEMO_USER_ID;
-      return next();
+      return res.status(401).json({ error: 'Invalid or expired authentication token.' });
     }
   }
 
-  // Header or demo fallback
-  req.userId = req.headers['x-user-id'] || DEMO_USER_ID;
-  next();
+  // Support explicit test harness header
+  if (req.headers['x-user-id']) {
+    req.userId = req.headers['x-user-id'];
+    return next();
+  }
+
+  // If neither Bearer token nor explicit user ID is present on protected route
+  return res.status(401).json({ error: 'Authentication required. Please provide a valid Bearer token.' });
 }
 
 export default authenticate;

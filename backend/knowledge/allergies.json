@@ -1,0 +1,282 @@
+{
+  "milk": {
+    "id": "milk",
+    "name": "Milk",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "milk",
+        "milk powder",
+        "milk solids",
+        "buttermilk",
+        "cream",
+        "butter",
+        "ghee"
+      ],
+      "derived_terms": [
+        "casein",
+        "caseinate",
+        "whey",
+        "whey protein",
+        "lactalbumin",
+        "lactoglobulin"
+      ]
+    },
+    "label_signals": {
+      "contains": [
+        "milk"
+      ],
+      "may_contain": [
+        "milk",
+        "milk products"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "egg": {
+    "id": "egg",
+    "name": "Egg",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "egg",
+        "eggs",
+        "egg white",
+        "egg yolk",
+        "albumen"
+      ],
+      "derived_terms": [
+        "ovalbumin",
+        "ovomucoid"
+      ]
+    },
+    "label_signals": {
+      "contains": [
+        "egg"
+      ],
+      "may_contain": [
+        "egg"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "peanut": {
+    "id": "peanut",
+    "name": "Peanut",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "peanut",
+        "peanuts",
+        "groundnut",
+        "ground nuts",
+        "arachis hypogaea",
+        "peanut butter",
+        "peanut flour",
+        "peanut oil"
+      ],
+      "derived_terms": []
+    },
+    "label_signals": {
+      "contains": [
+        "peanut",
+        "groundnut"
+      ],
+      "may_contain": [
+        "peanut",
+        "groundnut"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "wheat": {
+    "id": "wheat",
+    "name": "Wheat",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "wheat",
+        "wheat flour",
+        "whole wheat",
+        "wheat starch",
+        "wheat protein",
+        "wheat gluten"
+      ],
+      "derived_terms": []
+    },
+    "label_signals": {
+      "contains": [
+        "wheat"
+      ],
+      "may_contain": [
+        "wheat"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "soy": {
+    "id": "soy",
+    "name": "Soy",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "soy",
+        "soya",
+        "soybean",
+        "soybeans",
+        "soy flour",
+        "soy protein",
+        "soy lecithin"
+      ],
+      "derived_terms": []
+    },
+    "label_signals": {
+      "contains": [
+        "soy"
+      ],
+      "may_contain": [
+        "soy"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "tree_nuts": {
+    "id": "tree_nuts",
+    "name": "Tree Nuts",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "almond",
+        "almonds",
+        "walnut",
+        "walnuts",
+        "cashew",
+        "cashews",
+        "pistachio",
+        "pistachios",
+        "pecan",
+        "pecans",
+        "hazelnut",
+        "hazelnuts",
+        "macadamia",
+        "brazil nut",
+        "brazil nuts"
+      ],
+      "derived_terms": []
+    },
+    "label_signals": {
+      "contains": [
+        "tree nuts"
+      ],
+      "may_contain": [
+        "tree nuts"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "fish": {
+    "id": "fish",
+    "name": "Fish",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "fish",
+        "cod",
+        "salmon",
+        "tuna",
+        "sardine",
+        "anchovy",
+        "mackerel",
+        "trout",
+        "bass",
+        "flounder"
+      ],
+      "derived_terms": []
+    },
+    "label_signals": {
+      "contains": [
+        "fish"
+      ],
+      "may_contain": [
+        "fish"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "crustacean_shellfish": {
+    "id": "crustacean_shellfish",
+    "name": "Crustacean Shellfish",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "crab",
+        "lobster",
+        "shrimp",
+        "prawn",
+        "crayfish",
+        "crustacean"
+      ],
+      "derived_terms": []
+    },
+    "label_signals": {
+      "contains": [
+        "crustacean shellfish"
+      ],
+      "may_contain": [
+        "crustacean shellfish"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  },
+  "sesame": {
+    "id": "sesame",
+    "name": "Sesame",
+    "type": "allergen",
+    "detection": {
+      "direct_terms": [
+        "sesame",
+        "sesame seed",
+        "sesame seeds",
+        "tahini",
+        "sesame oil"
+      ],
+      "derived_terms": []
+    },
+    "label_signals": {
+      "contains": [
+        "sesame"
+      ],
+      "may_contain": [
+        "sesame"
+      ]
+    },
+    "source_ids": [
+      "FDA_MAJOR_ALLERGENS",
+      "FSSAI_ALLERGEN_LABELING"
+    ]
+  }
+}

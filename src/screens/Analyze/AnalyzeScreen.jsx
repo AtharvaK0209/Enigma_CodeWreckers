@@ -43,9 +43,9 @@ export default function AnalyzeScreen({ onNavigate }) {
         setEdgeCaseError({
           type: 'barcode_not_found',
           code: err.barcode || code,
-          title: 'Barcode Not in Safety Registry',
-          description: `We searched over 3.2M global food items, but barcode "${code}" was not found in registered food safety catalogs.`,
-          actionPrompt: 'Try snapping a photo of the ingredient list instead for instant AI OCR transcription.',
+          title: "We couldn't find this barcode in Open Food Facts.",
+          description: "We couldn't find this barcode in Open Food Facts.",
+          actionPrompt: 'Upload or capture a photo of the product packaging or ingredients label instead.',
         });
       } else {
         setEdgeCaseError({
@@ -142,7 +142,7 @@ export default function AnalyzeScreen({ onNavigate }) {
                   onClick={() => { setActiveTab('photo'); clearError(); }}
                 >
                   <Camera size={16} />
-                  <span>Switch to Photo OCR</span>
+                  <span>Upload Product Image</span>
                 </button>
                 <button className="btn-pill-secondary" onClick={clearError}>
                   <RefreshCw size={14} />

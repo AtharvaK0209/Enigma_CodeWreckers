@@ -33,6 +33,7 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
   const [isManualFocused, setIsManualFocused] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [uploadBarcodeError, setUploadBarcodeError] = useState(null);
 
   // Check if camera permission was already granted in this session
   const [showPermissionModal, setShowPermissionModal] = useState(() => {
@@ -48,6 +49,7 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
   const isStartingRef = useRef(false);
   const manualInputRef = useRef(null);
   const nativeCameraInputRef = useRef(null);
+  const barcodeImageInputRef = useRef(null);
 
   // Quick test barcodes for instant testing & desktop verification
   const sampleBarcodes = [
@@ -258,6 +260,27 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
     }
   };
 
+  // Handle direct barcode image file upload (Mission 4)
+  const handleBarcodeImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingPhoto(true);
+    setUploadBarcodeError(null);
+    try {
+      const html5QrCode = new Html5Qrcode('nutrilens-qr-reader');
+      const decodedText = await html5QrCode.scanFile(file, true);
+      await stopAndReleaseStreams();
+      onScanSuccess(decodedText);
+    } catch (err) {
+      console.warn('[BarcodeScanner] Barcode decode failed from image file:', err);
+      setUploadBarcodeError("couldn't read a barcode in that image");
+    } finally {
+      setIsProcessingPhoto(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
   const handleManualSubmit = async (e) => {
     e.preventDefault();
     if (manualCode.trim()) {
@@ -445,9 +468,18 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
       </div>
       )}
 
+      {/* Hidden input for barcode image upload (Mission 4) */}
+      <input
+        type="file"
+        ref={barcodeImageInputRef}
+        onChange={handleBarcodeImageUpload}
+        accept="image/*"
+        style={{ display: 'none' }}
+      />
+
       {/* Camera Controls Bar */}
       {!showPermissionModal && (
-        <div className="scanner-controls-bar">
+        <div className="scanner-controls-bar" style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
           {scannerActive ? (
             <PillButton variant="secondary" size="sm" icon={CameraOff} onClick={stopAndReleaseStreams}>
               Pause Camera
@@ -464,6 +496,43 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
               Open Camera Scanner
             </PillButton>
           )}
+
+          <PillButton
+            variant="secondary"
+            size="sm"
+            icon={ImageIcon}
+            onClick={() => {
+              setUploadBarcodeError(null);
+              barcodeImageInputRef.current?.click();
+            }}
+            loading={isProcessingPhoto}
+          >
+            Upload Barcode Image
+          </PillButton>
+        </div>
+      )}
+
+      {/* Mission 4: Barcode Image Decode Error Banner */}
+      {uploadBarcodeError && (
+        <div
+          className="upload-barcode-error-banner anim-spring-pop"
+          style={{
+            margin: '12px auto',
+            maxWidth: '460px',
+            padding: '12px 16px',
+            borderRadius: '14px',
+            background: '#FEF2F2',
+            border: '1px solid #FECDD3',
+            color: '#991B1B',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontSize: '13.5px',
+            fontWeight: '500',
+          }}
+        >
+          <AlertTriangle size={18} color="#DC2626" style={{ flexShrink: 0 }} />
+          <span>{uploadBarcodeError}</span>
         </div>
       )}
 

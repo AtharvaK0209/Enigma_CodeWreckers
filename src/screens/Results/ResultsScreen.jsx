@@ -16,6 +16,7 @@ import {
 import confetti from 'canvas-confetti';
 import RiskCard from '../../components/RiskCard';
 import AlternativeCard from '../../components/AlternativeCard';
+import OffProductInfo from '../../components/OffProductInfo';
 import PillButton from '../../components/common/PillButton';
 import Card from '../../components/common/Card';
 import { useAnalysis } from '../../context/AnalysisContext';
@@ -425,6 +426,11 @@ export default function ResultsScreen({ onNavigate }) {
           )}
         </Card>
       )}
+
+      {/* Mission 6: Dedicated Open Food Facts Product Information Section */}
+      <section className="off-info-wrapper">
+        <OffProductInfo product={activeResult.canonicalProduct || activeResult.product} />
+      </section>
 
       {/* Action Footer */}
       <div className="results-cta-footer">

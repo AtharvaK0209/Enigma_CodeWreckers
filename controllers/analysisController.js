@@ -3,6 +3,7 @@ import { fuseProductData } from '../services/fusionService.js';
 import { evaluateProductSafety } from '../services/decisionEngine.js';
 import historyService from '../services/historyService.js';
 import UserModel from '../models/User.js';
+import { normalizeWithRKB } from '../services/normalizationService.js';
 
 /**
  * Common pipeline tail that all analysis entry points reach
@@ -27,7 +28,7 @@ export async function runPipeline({
   // 2. Evaluate deterministic safety rules
   const evaluated = evaluateProductSafety(fusedProduct, userProfile, fusedProduct.dataQuality);
 
-  // 3. Persist scan history entry (Mission 3 requirement)
+  // 3. Persist scan history entry (Mission 3 & 8 requirement)
   try {
     await historyService.save({
       userId,
@@ -50,50 +51,56 @@ export async function runPipeline({
 export const analysisController = {
   /**
    * POST /api/analyze/barcode
+   * Analyzes barcode against authenticated user's real profile and real Open Food Facts data
    */
   async analyzeBarcode(req, res) {
     try {
       const { barcode, userProfile } = req.body;
       const cleanCode = (barcode || '').trim();
-      const userId = req.userId || 'demo-user-123';
+      const userId = req.userId;
 
       if (!cleanCode) {
         return res.status(400).json({ error: 'Barcode parameter is required.' });
       }
 
-      if (cleanCode === '999999999999' || cleanCode.startsWith('404')) {
-        return res.status(404).json({
-          code: 'BARCODE_NOT_FOUND',
-          barcode: cleanCode,
-          error: 'Product not found in international food safety database.',
-        });
-      }
-
-      // Fetch product via Open Food Facts / local registry
-      const product = await productApiService.getByBarcode(cleanCode);
-
-      if (!product) {
-        return res.status(404).json({
-          code: 'BARCODE_NOT_FOUND',
-          barcode: cleanCode,
-          error: 'Product not found in international food safety database.',
-        });
-      }
-
-      // Fetch user profile if not passed in body
-      let profile = userProfile;
-      if (!profile || Object.keys(profile).length === 0) {
+      // Mission 1 & 2: Identify user and fetch real Mongo profile
+      let profile = null;
+      if (userId) {
         const dbUser = await UserModel.findById(userId);
         if (dbUser) profile = dbUser;
       }
+      if (!profile && userProfile && Object.keys(userProfile).length > 0) {
+        profile = userProfile;
+      }
+      if (!profile) {
+        return res.status(401).json({ error: 'Authentication required. Please sign in to analyze products.' });
+      }
+
+      // Mission 3: Fetch real canonical product from Open Food Facts
+      const canonicalProduct = await productApiService.getByBarcode(cleanCode);
+
+      // Mission 5: Barcode not found handling with exact required copy
+      if (!canonicalProduct) {
+        return res.status(404).json({
+          code: 'BARCODE_NOT_FOUND',
+          barcode: cleanCode,
+          error: "We couldn't find this barcode in Open Food Facts.",
+        });
+      }
+
+      // Mission 7: Normalize canonical OFF product with Risk Knowledge Base (RKB)
+      const normalizedProduct = normalizeWithRKB(canonicalProduct);
 
       const result = await runPipeline({
-        rawProduct: product,
+        rawProduct: normalizedProduct,
         userProfile: profile,
-        userId,
+        userId: userId || profile.id || profile._id || 'demo-user-123',
         method: 'barcode',
         source: 'off',
       });
+
+      // Attach canonical product for Mission 6 "Product Information — Open Food Facts" UI
+      result.canonicalProduct = canonicalProduct;
 
       res.json(result);
     } catch (err) {

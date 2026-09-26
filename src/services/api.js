@@ -304,56 +304,35 @@ export function evaluateProductSafety(product, userProfile = {}, forcedDataQuali
 /**
  * Analyze product by barcode
  */
-export async function analyzeBarcode(code, userProfile = {}) {
+export async function analyzeBarcode(code, userProfile = {}, token = null) {
   const cleanCode = (code || '').trim();
+  const authToken = token || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('nutrilens_auth_token') : null) || (typeof localStorage !== 'undefined' ? localStorage.getItem('nutrilens_auth_token') : null);
 
-  try {
-    const response = await fetch(`${API_BASE}/api/analyze/barcode`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ barcode: cleanCode, userProfile }),
-    });
-
-    if (response.ok) {
-      return await response.json();
-    }
-  } catch (err) {
-    console.info('[NutriLens API] Remote backend unavailable, using local registry:', err.message);
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
-  if (cleanCode === '999999999999' || cleanCode.startsWith('404')) {
-    const error = new Error('Product not found in international food safety database.');
+  const response = await fetch(`${API_BASE}/api/analyze/barcode`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ barcode: cleanCode, userProfile }),
+  });
+
+  if (response.ok) {
+    return await response.json();
+  }
+
+  if (response.status === 404) {
+    const errJson = await response.json().catch(() => ({}));
+    const error = new Error(errJson.error || "We couldn't find this barcode in Open Food Facts.");
     error.code = 'BARCODE_NOT_FOUND';
     error.barcode = cleanCode;
     throw error;
   }
 
-  let product = PRODUCT_DATABASE[cleanCode];
-
-  if (!product) {
-    if (cleanCode.length < 5) {
-      const error = new Error('Invalid barcode format. Please re-align barcode.');
-      error.code = 'INVALID_BARCODE';
-      throw error;
-    }
-
-    product = {
-      id: cleanCode,
-      name: `Wholesome Snack Batch #${cleanCode.slice(-4)}`,
-      brand: 'Harvest Natural',
-      image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=500&auto=format&fit=crop&q=80',
-      ingredients: ['Whole Rolled Oats', 'Honey', 'Almonds', 'Sunflower Seeds', 'Sea Salt'],
-      nutrition: { sodium: '110mg', sugars: '6g', calories: '160 kcal' },
-      allergensDetected: ['tree_nuts'],
-      primaryAllergenKey: 'tree_nuts',
-      riskTriggers: {
-        tree_nuts: { trigger: 'Whole Roasted Almonds', source: 'Food Allergen Labeling Act' },
-      },
-    };
-  }
-
-  await new Promise((r) => setTimeout(r, 250));
-  return evaluateProductSafety(product, userProfile);
+  const errJson = await response.json().catch(() => ({}));
+  throw new Error(errJson.error || `Barcode analysis failed with status ${response.status}`);
 }
 
 /**

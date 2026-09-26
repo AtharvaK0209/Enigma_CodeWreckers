@@ -181,7 +181,9 @@ export function normalizeOFFProduct(p) {
 
 export const productApiService = {
   /**
-   * Lookup product by barcode with caching (Mission 9)
+   * Fetch product from Open Food Facts v3 API
+   * Maps response into canonical internal product object (Mission 3).
+   * Populates only fields OFF returned, leaves missing fields null.
    */
   async getByBarcode(barcode) {
     const cleanCode = (barcode || '').trim();
@@ -196,55 +198,91 @@ export const productApiService = {
 
     console.log(`[ProductAPI Cache MISS] Fetching barcode ${cleanCode} from Open Food Facts`);
 
-    // First check local database for fast deterministic testing
-    if (FALLBACK_PRODUCTS[cleanCode]) {
-      const product = FALLBACK_PRODUCTS[cleanCode];
-      productCache.set(cleanCode, { data: product, timestamp: Date.now() });
-      return { ...product };
-    }
-
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(cleanCode)}.json`;
+      const url = `https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(cleanCode)}`;
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'NutriLens/1.0 (safety@nutrilens.app)',
+          'User-Agent': 'NutriLens/1.0 (safety@nutrilens.app; +https://nutrilens.app)',
           Accept: 'application/json',
         },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(7000),
       });
+
+      if (response.status === 404) {
+        console.log(`[ProductAPI] Open Food Facts returned 404 for barcode: ${cleanCode}`);
+        return null;
+      }
 
       if (response.ok) {
         const json = await response.json();
-        if (json.status === 1 && json.product) {
-          const normalized = normalizeOFFProduct(json.product);
-          productCache.set(cleanCode, { data: normalized, timestamp: Date.now() });
-          return normalized;
+        if (json.status === 'failure' || json.result?.id === 'product_not_found' || !json.product) {
+          console.log(`[ProductAPI] Product not found in OFF for barcode: ${cleanCode}`);
+          return null;
         }
+
+        const p = json.product;
+        const nutriments = p.nutriments || {};
+
+        const canonical = {
+          source: 'openfoodfacts',
+          barcode: cleanCode,
+          name: p.product_name || p.product_name_en || null,
+          brand: p.brands || null,
+          imageUrl: p.image_url || p.image_front_url || null,
+          ingredientsText: p.ingredients_text || p.ingredients_text_en || null,
+          allergens: Array.isArray(p.allergens_tags)
+            ? p.allergens_tags.map((t) => t.replace(/^[a-z]{2}:/, '').toLowerCase().trim())
+            : [],
+          traces: Array.isArray(p.traces_tags)
+            ? p.traces_tags.map((t) => t.replace(/^[a-z]{2}:/, '').toLowerCase().trim())
+            : [],
+          servingSize: p.serving_size || null,
+          nutrition: {
+            energy: nutriments['energy-kcal_100g'] ?? nutriments['energy-kcal'] ?? nutriments['energy_100g'] ?? nutriments.energy ?? null,
+            carbohydrates: nutriments.carbohydrates_100g ?? nutriments.carbohydrates ?? null,
+            sugars: nutriments.sugars_100g ?? nutriments.sugars ?? null,
+            fiber: nutriments.fiber_100g ?? nutriments.fiber ?? null,
+            protein: nutriments.proteins_100g ?? nutriments.proteins ?? null,
+            fat: nutriments.fat_100g ?? nutriments.fat ?? null,
+            saturatedFat: nutriments['saturated-fat_100g'] ?? nutriments['saturated-fat'] ?? null,
+            transFat: nutriments['trans-fat_100g'] ?? nutriments['trans-fat'] ?? null,
+            sodium: nutriments.sodium_100g ?? nutriments.sodium ?? null,
+          },
+        };
+
+        productCache.set(cleanCode, { data: canonical, timestamp: Date.now() });
+        return canonical;
       }
     } catch (err) {
-      console.warn(`[ProductAPI] OFF live lookup failed for ${cleanCode}: ${err.message}. Checking fallbacks.`);
-    }
-
-    // Generic fallback for any unrecognized code
-    if (cleanCode.length >= 6) {
-      const synthetic = {
-        id: cleanCode,
-        barcode: cleanCode,
-        name: `Wholesome Snack Batch #${cleanCode.slice(-4)}`,
-        brand: 'Harvest Natural',
-        image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=500&auto=format&fit=crop&q=80',
-        ingredients: ['Whole Rolled Oats', 'Honey', 'Almonds', 'Sunflower Seeds', 'Sea Salt'],
-        nutrition: { sodium: '110mg', sugars: '6g', calories: '160 kcal' },
-        allergensDetected: ['tree_nuts'],
-        categories: ['snacks', 'cereal-bars'],
-        primaryAllergenKey: 'tree_nuts',
-        riskTriggers: {
-          tree_nuts: { trigger: 'Whole Roasted Almonds', source: 'Food Allergen Labeling Act' },
-        },
-        source: 'off',
-      };
-      productCache.set(cleanCode, { data: synthetic, timestamp: Date.now() });
-      return synthetic;
+      console.warn(`[ProductAPI] Live Open Food Facts lookup failed: ${err.message}.`);
+      // Fallback only if offline and cached fallback exists
+      if (FALLBACK_PRODUCTS[cleanCode]) {
+        console.log(`[ProductAPI] Using offline fallback for known barcode: ${cleanCode}`);
+        const fb = FALLBACK_PRODUCTS[cleanCode];
+        const canonicalFallback = {
+          source: 'openfoodfacts',
+          barcode: cleanCode,
+          name: fb.name || null,
+          brand: fb.brand || null,
+          imageUrl: fb.image || null,
+          ingredientsText: fb.ingredients ? fb.ingredients.join(', ') : null,
+          allergens: fb.allergensDetected || [],
+          traces: fb.crossContact || [],
+          servingSize: fb.servingSize || null,
+          nutrition: {
+            energy: fb.nutrition?.calories ? parseInt(fb.nutrition.calories) : null,
+            carbohydrates: null,
+            sugars: fb.nutrition?.sugars ? parseFloat(fb.nutrition.sugars) : null,
+            fiber: null,
+            protein: null,
+            fat: null,
+            saturatedFat: null,
+            transFat: null,
+            sodium: fb.nutrition?.sodium ? parseFloat(fb.nutrition.sodium) : null,
+          },
+        };
+        return canonicalFallback;
+      }
     }
 
     return null;

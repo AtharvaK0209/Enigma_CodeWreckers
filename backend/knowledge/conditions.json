@@ -1,0 +1,156 @@
+{
+  "diabetes": {
+    "id": "diabetes",
+    "name": "Diabetes",
+    "type": "condition",
+    "relevant_nutrients": [
+      "carbohydrates",
+      "sugars",
+      "free_sugars",
+      "fiber",
+      "energy"
+    ],
+    "interpretation": {
+      "use_hard_threshold": false,
+      "requires_individual_context": true
+    },
+    "guidance": [
+      {
+        "nutrient": "free_sugars",
+        "interpretation": "Relevant dietary factor; WHO recommends limiting free sugars to <10% of total daily energy intake. This is not a universal per-product safety threshold.",
+        "source_id": "WHO_HEALTHY_DIET"
+      }
+    ],
+    "source_ids": [
+      "WHO_HEALTHY_DIET"
+    ]
+  },
+  "hypertension": {
+    "id": "hypertension",
+    "name": "Hypertension",
+    "type": "condition",
+    "relevant_nutrients": [
+      "sodium",
+      "salt"
+    ],
+    "interpretation": {
+      "use_hard_threshold": false,
+      "requires_individual_context": true
+    },
+    "guidance": [
+      {
+        "nutrient": "sodium",
+        "interpretation": "WHO recommends adults consume <2000 mg sodium/day (<5 g salt/day). Do not convert this into a universal per-serving unsafe threshold.",
+        "source_id": "WHO_SODIUM"
+      }
+    ],
+    "source_ids": [
+      "WHO_SODIUM"
+    ]
+  },
+  "ckd": {
+    "id": "ckd",
+    "name": "Chronic Kidney Disease",
+    "type": "condition",
+    "relevant_nutrients": [
+      "sodium",
+      "potassium",
+      "phosphorus",
+      "protein",
+      "calcium"
+    ],
+    "interpretation": {
+      "use_hard_threshold": false,
+      "requires_individual_context": true,
+      "individualization_factors": [
+        "CKD stage",
+        "laboratory values",
+        "dialysis status",
+        "medications",
+        "clinician-directed diet"
+      ]
+    },
+    "guidance": [
+      {
+        "nutrient": "sodium",
+        "interpretation": "May require management depending on individual circumstances.",
+        "source_id": "NKF_CKD_NUTRITION"
+      },
+      {
+        "nutrient": "potassium",
+        "interpretation": "May require management depending on individual circumstances; no universal avoidance rule.",
+        "source_id": "NKF_CKD_NUTRITION"
+      },
+      {
+        "nutrient": "phosphorus",
+        "interpretation": "May require management depending on individual circumstances.",
+        "source_id": "NKF_CKD_NUTRITION"
+      },
+      {
+        "nutrient": "protein",
+        "interpretation": "Needs depend on CKD context and treatment status.",
+        "source_id": "NKF_CKD_NUTRITION"
+      }
+    ],
+    "source_ids": [
+      "NKF_CKD_NUTRITION"
+    ]
+  },
+  "pcos": {
+    "id": "pcos",
+    "name": "PCOS (Polycystic Ovary Syndrome)",
+    "type": "condition",
+    "relevant_nutrients": [
+      "free_sugars",
+      "carbohydrates",
+      "fiber",
+      "saturated_fat",
+      "energy"
+    ],
+    "interpretation": {
+      "use_hard_threshold": false,
+      "requires_individual_context": true
+    },
+    "guidance": [
+      {
+        "nutrient": "dietary_pattern",
+        "interpretation": "Interpret dietary factors as part of an overall healthy lifestyle; do not invent PCOS-specific product thresholds.",
+        "source_id": "MONASH_PCOS_GUIDELINE"
+      }
+    ],
+    "source_ids": [
+      "MONASH_PCOS_GUIDELINE"
+    ]
+  },
+  "high_cholesterol": {
+    "id": "high_cholesterol",
+    "name": "High Cholesterol / Dyslipidemia",
+    "type": "condition",
+    "relevant_nutrients": [
+      "saturated_fat",
+      "trans_fat",
+      "unsaturated_fat",
+      "fiber"
+    ],
+    "interpretation": {
+      "use_hard_threshold": false,
+      "requires_individual_context": true
+    },
+    "guidance": [
+      {
+        "nutrient": "saturated_fat",
+        "interpretation": "Reducing saturated fat is relevant to cholesterol management; do not treat one product value as universally unsafe.",
+        "source_id": "AHA_HIGH_CHOLESTEROL"
+      },
+      {
+        "nutrient": "trans_fat",
+        "interpretation": "Trans fat reduction is relevant to heart-healthy eating.",
+        "source_id": "WHO_HEALTHY_DIET"
+      }
+    ],
+    "source_ids": [
+      "AHA_HIGH_CHOLESTEROL",
+      "WHO_HEALTHY_DIET"
+    ]
+  }
+}
