@@ -4,11 +4,14 @@ const ProfileContext = createContext(null);
 
 const DEFAULT_PROFILE = {
   name: 'Yunus',
-  allergies: ['peanut', 'tree_nuts'], // realistic sample default
+  age: '24',
+  allergies: ['peanut', 'tree_nuts'],
+  customAllergens: [],
   conditions: ['hypertension'],
+  hasCompletedOnboarding: true,
 };
 
-const STORAGE_KEY = 'nutrilens_user_profile_v1';
+const STORAGE_KEY = 'nutrilens_user_profile_v2';
 
 export function ProfileProvider({ children }) {
   const [profile, setProfile] = useState(() => {
@@ -18,22 +21,25 @@ export function ProfileProvider({ children }) {
         return JSON.parse(saved);
       }
     } catch (e) {
-      console.warn('Failed reading profile from localStorage:', e);
+      console.warn('[ProfileContext] Error reading from localStorage:', e);
     }
     return DEFAULT_PROFILE;
   });
 
-  // Persist to local storage whenever profile changes
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
     } catch (e) {
-      console.warn('Failed saving profile to localStorage:', e);
+      console.warn('[ProfileContext] Error saving to localStorage:', e);
     }
   }, [profile]);
 
   const setName = (name) => {
     setProfile((prev) => ({ ...prev, name }));
+  };
+
+  const setAge = (age) => {
+    setProfile((prev) => ({ ...prev, age }));
   };
 
   const toggleAllergy = (allergyId) => {
@@ -46,7 +52,44 @@ export function ProfileProvider({ children }) {
     });
   };
 
+  const addCustomAllergen = (customName) => {
+    const trimmed = (customName || '').trim();
+    if (!trimmed) return;
+    const id = `custom_${trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+
+    setProfile((prev) => {
+      if (prev.customAllergens.some((a) => a.id === id)) return prev;
+      return {
+        ...prev,
+        customAllergens: [
+          ...prev.customAllergens,
+          {
+            id,
+            label: trimmed,
+            isCustom: true,
+            limitedCoverage: true,
+            limitedNote: 'Custom allergens rely on keyword matching, which may not catch every derivative or scientific designation.',
+          },
+        ],
+        allergies: [...prev.allergies, id],
+      };
+    });
+  };
+
+  const removeCustomAllergen = (id) => {
+    setProfile((prev) => ({
+      ...prev,
+      customAllergens: prev.customAllergens.filter((a) => a.id !== id),
+      allergies: prev.allergies.filter((item) => item !== id),
+    }));
+  };
+
   const toggleCondition = (conditionId) => {
+    if (conditionId === 'none') {
+      setProfile((prev) => ({ ...prev, conditions: [] }));
+      return;
+    }
+
     setProfile((prev) => {
       const exists = prev.conditions.includes(conditionId);
       const updated = exists
@@ -56,11 +99,18 @@ export function ProfileProvider({ children }) {
     });
   };
 
+  const completeOnboarding = () => {
+    setProfile((prev) => ({ ...prev, hasCompletedOnboarding: true }));
+  };
+
   const resetProfile = () => {
     setProfile({
       name: '',
+      age: '',
       allergies: [],
+      customAllergens: [],
       conditions: [],
+      hasCompletedOnboarding: false,
     });
   };
 
@@ -69,8 +119,12 @@ export function ProfileProvider({ children }) {
       value={{
         profile,
         setName,
+        setAge,
         toggleAllergy,
+        addCustomAllergen,
+        removeCustomAllergen,
         toggleCondition,
+        completeOnboarding,
         resetProfile,
         setProfile,
       }}

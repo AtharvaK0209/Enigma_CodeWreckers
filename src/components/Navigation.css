@@ -1,7 +1,7 @@
 /* Desktop Header */
 .desktop-header {
   display: none;
-  background: rgba(250, 248, 245, 0.92);
+  background: rgba(250, 248, 245, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   position: sticky;
@@ -13,7 +13,7 @@
 .header-container {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 16px 32px;
+  padding: 14px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -28,8 +28,8 @@
 }
 
 .brand-dot {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background-color: #22C55E;
   box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
@@ -46,19 +46,19 @@
 .brand-tag {
   font-size: 11px;
   font-weight: 700;
-  background: #E8E5DD;
-  color: #4A4742;
+  background: #EAE7DF;
+  color: #55524B;
   padding: 2px 8px;
   border-radius: 9999px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .desktop-nav-links {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #ECE9E1;
+  gap: 6px;
+  background: #ECEAE2;
   padding: 4px;
   border-radius: 9999px;
 }
@@ -66,8 +66,8 @@
 .desktop-nav-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  gap: 6px;
+  padding: 7px 16px;
   border-radius: 9999px;
   border: none;
   background: transparent;
@@ -89,15 +89,20 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.desktop-cta {
-  padding: 10px 22px;
-  font-size: 14px;
+.dev-nav-link {
+  opacity: 0.75;
+  font-size: 12px;
 }
 
-/* Mobile Floating Black Pill Bottom Nav */
+.desktop-cta {
+  padding: 9px 20px;
+  font-size: 13px;
+}
+
+/* Floating Bottom Nav for Mobile & Tablet (Mission 3) */
 .mobile-bottom-nav {
   position: fixed;
-  bottom: 20px;
+  bottom: 18px;
   left: 0;
   right: 0;
   display: flex;
@@ -112,14 +117,17 @@
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   background: #111111;
   border-radius: 9999px;
-  padding: 8px 14px;
-  box-shadow: var(--shadow-nav);
+  padding: 8px 18px;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.32), 0 4px 14px rgba(0, 0, 0, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  max-width: 360px;
+  width: calc(100% - 32px);
+  justify-content: space-between;
 }
 
 .pill-nav-btn {
@@ -127,14 +135,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.55);
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 9999px;
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-smooth);
+  flex: 1;
 }
 
 .pill-icon-wrap {
@@ -142,6 +151,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 24px;
 }
 
 .active-glow-dot {
@@ -162,12 +172,45 @@
 }
 
 .pill-nav-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .pill-nav-btn.active {
   color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Visually Emphasized Scan button (Mission 3 constraint) */
+.emphasized-scan-btn {
+  margin-top: -14px;
+  position: relative;
+  flex: 1.15;
+}
+
+.emphasized-icon-bubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #E4FA75;
+  color: #14381B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(228, 250, 117, 0.4), 0 0 0 3px #111111;
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.emphasized-scan-btn:hover .emphasized-icon-bubble,
+.emphasized-scan-btn:active .emphasized-icon-bubble {
+  transform: scale(1.08);
+}
+
+.emphasized-scan-btn.active .emphasized-icon-bubble {
+  box-shadow: 0 0 0 3px #111111, 0 0 12px #E4FA75;
+}
+
+.emphasized-scan-btn .pill-btn-label {
+  color: #E4FA75;
+  font-weight: 700;
 }
 
 @media (min-width: 1024px) {

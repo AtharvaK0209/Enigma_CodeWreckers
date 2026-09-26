@@ -195,6 +195,7 @@ export default function AnalyzeScreen({ onNavigate }) {
           {activeTab === 'barcode' ? (
             <BarcodeScanner
               onScanSuccess={handleBarcodeSuccess}
+              onSwitchToPhoto={() => setActiveTab('photo')}
               onError={(err) => console.warn('Scanner error:', err)}
             />
           ) : (

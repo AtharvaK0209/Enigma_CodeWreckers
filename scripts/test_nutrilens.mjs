@@ -1,8 +1,8 @@
-import { analyzeBarcode, analyzeImage } from '../src/services/api.js';
+import { analyzeBarcode, analyzeImage, searchFood } from '../src/services/api.js';
 import { THEME } from '../src/styles/tokens.js';
 
 async function runTests() {
-  console.log('--- Starting NutriLens Test Suite ---');
+  console.log('--- Starting NutriLens Design & UX Revision Test Suite ---');
   let passed = 0;
   let failed = 0;
 
@@ -16,23 +16,24 @@ async function runTests() {
     }
   }
 
-  // 1. Theme Tokens Check (Mission 1)
+  // 1. Mission 1: Theme Tokens Check
   assert(THEME.colors.safe?.surface === '#E4FA75', 'Safe verdict surface color is vivid chartreuse/lime (#E4FA75)');
   assert(THEME.colors.caution?.surface === '#FDE68A', 'Caution verdict surface color is warm golden amber (#FDE68A)');
   assert(THEME.colors.risk?.surface === '#FECDD3', 'Risk verdict surface color is coral crimson (#FECDD3)');
-  assert(THEME.allergens.length === 7, 'Theme exports all 7 major allergen items (peanut, milk, egg, tree_nuts, wheat, soy, sesame)');
-  assert(THEME.conditions.length === 2, 'Theme exports both health conditions (hypertension, diabetes)');
+  assert(THEME.allergens.length === 9, 'Theme exports all 9 major allergen items (peanut, milk, egg, wheat, tree_nuts, soy, fish, crustacean_shellfish, sesame)');
+  assert(THEME.conditions.length === 4, 'Theme exports all 4 conditions (hypertension, diabetes, ckd, pcos)');
+  assert(THEME.conditions.find(c => c.id === 'ckd')?.isFullySupported === false, 'CKD condition has isFullySupported: false for honest coverage');
+  assert(THEME.conditions.find(c => c.id === 'pcos')?.isFullySupported === false, 'PCOS condition has isFullySupported: false for honest coverage');
 
-  // 2. Allergen Risk Detection (Mission 1 & 2 & 5)
+  // 2. Mission 4: Allergen Risk Detection & Plain-Language Copy
   const nutellaResult = await analyzeBarcode('8000500310427', {
     name: 'Yunus',
     allergies: ['tree_nuts'],
     conditions: ['hypertension'],
   });
   assert(nutellaResult.verdict === 'risk', 'Nutella spread flags "risk" for tree_nuts allergy');
-  assert(nutellaResult.verdictTitle === 'Risk found', 'Verdict title is "Risk found"');
+  assert(nutellaResult.verdictTitle === 'This product may not be safe for you', 'Risk verdict copy matches Mission 4: "This product may not be safe for you"');
   assert(nutellaResult.dataQuality === 'good', 'Default barcode data quality is "good"');
-  assert(nutellaResult.dataQualityMessage === 'Verified data', 'Data quality message is "Verified data"');
   assert(nutellaResult.findings.length > 0, 'Produces structured findings list');
 
   // Verify RiskFinding contract shape
@@ -44,24 +45,44 @@ async function runTests() {
     assert(finding.source === undefined || finding.source === null || typeof finding.source === 'string', 'Finding source is string or null');
   }
 
-  // 3. Condition Caution Detection (Mission 1 & 2 & 5)
+  // 3. Mission 4: Caution Verdict Copy
   const energyResult = await analyzeBarcode('5449000000996', {
     name: 'Yunus',
     allergies: [],
     conditions: ['hypertension', 'diabetes'],
   });
   assert(energyResult.verdict === 'caution', 'Energy drink flags "caution" for hypertension and diabetes');
+  assert(energyResult.verdictTitle === 'A few things to check', 'Caution verdict copy matches Mission 4: "A few things to check"');
 
-  // 4. Wholesome 100% Safe (Mission 7 Edge Case 3: No concerns found)
+  // 4. Mission 4: Safe Verdict Copy
   const oatsResult = await analyzeBarcode('030000010204', {
     name: 'Yunus',
     allergies: ['peanut'],
     conditions: [],
   });
   assert(oatsResult.verdict === 'safe', 'Pure Oats flags "safe" with no allergen conflicts');
+  assert(oatsResult.verdictTitle === 'Looks safe for you', 'Safe verdict copy matches Mission 4: "Looks safe for you"');
   assert(oatsResult.findings.every(f => f.severity === 'safe'), 'All findings are safe for clean oats');
 
-  // 5. Mission 7 Edge Case 1: Barcode Not Found
+  // 5. Mission 7: Food Search by Name
+  const snickersMatches = await searchFood('Snickers', { allergies: ['peanut'] });
+  assert(snickersMatches.length > 0, 'Searching for "Snickers" returns results');
+  assert(snickersMatches[0].product.name.includes('Snickers') || snickersMatches[0].product.brand === 'Snickers', 'Search result matches product name/brand');
+  assert(snickersMatches[0].verdict === 'risk', 'Evaluated search result flags peanut allergen risk');
+
+  const emptyMatches = await searchFood('xyznonexistentfood123', {});
+  assert(Array.isArray(emptyMatches) && emptyMatches.length === 0, 'Searching for nonexistent food returns empty array for dedicated empty state');
+
+  // 6. Custom Allergen Detection (Mission 5)
+  const customAllergenResult = await analyzeBarcode('040000000002', {
+    name: 'Yunus',
+    allergies: ['custom_roasted_peanuts'],
+    customAllergens: [{ id: 'custom_roasted_peanuts', label: 'Roasted Peanuts' }],
+    conditions: [],
+  });
+  assert(customAllergenResult.verdict === 'risk', 'Custom keyword allergen correctly triggers risk evaluation');
+
+  // 7. Error Handling: Barcode Not Found & Image Unreadable
   try {
     await analyzeBarcode('999999999999');
     assert(false, 'Expected BARCODE_NOT_FOUND error to be thrown');
@@ -69,7 +90,6 @@ async function runTests() {
     assert(err.code === 'BARCODE_NOT_FOUND', 'Correctly throws BARCODE_NOT_FOUND for unregistered code 999999999999');
   }
 
-  // 6. Mission 4 & Mission 7 Edge Case 2: Image Unreadable
   try {
     await analyzeImage('SIMULATE_BLURRY_IMAGE');
     assert(false, 'Expected IMAGE_UNREADABLE error to be thrown');
@@ -77,15 +97,15 @@ async function runTests() {
     assert(err.code === 'IMAGE_UNREADABLE', 'Correctly throws IMAGE_UNREADABLE for blurry image input');
   }
 
-  // 7. Mission 6: Three Data Quality Badge States
-  const dqState1 = await analyzeImage('dummy_base64', {}, { dataQuality: 'good' });
-  assert(dqState1.dataQualityMessage === 'Verified data', 'State 1 data quality message is "Verified data"');
+  // 8. Data Quality States
+  const dqGood = await analyzeImage('dummy_base64', {}, { dataQuality: 'good' });
+  assert(dqGood.dataQuality === 'good', 'Data quality state good returned');
 
-  const dqState2 = await analyzeImage('dummy_base64', {}, { dataQuality: 'verify_label' });
-  assert(dqState2.dataQualityMessage === 'Please verify against the physical label', 'State 2 data quality message is "Please verify against the physical label"');
+  const dqPartial = await analyzeImage('dummy_base64', {}, { dataQuality: 'verify_label' });
+  assert(dqPartial.dataQuality === 'verify_label', 'Data quality state verify_label returned');
 
-  const dqState3 = await analyzeImage('dummy_base64', {}, { dataQuality: 'clearer_photo' });
-  assert(dqState3.dataQualityMessage === 'Please provide a clearer photo', 'State 3 data quality message is "Please provide a clearer photo"');
+  const dqLow = await analyzeImage('dummy_base64', {}, { dataQuality: 'clearer_photo' });
+  assert(dqLow.dataQuality === 'clearer_photo', 'Data quality state clearer_photo returned');
 
   console.log(`\nResults: ${passed} passed, ${failed} failed.`);
   if (failed > 0) process.exit(1);
@@ -95,3 +115,4 @@ runTests().catch((err) => {
   console.error('Fatal test error:', err);
   process.exit(1);
 });
+

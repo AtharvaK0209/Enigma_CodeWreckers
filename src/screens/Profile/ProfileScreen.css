@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
+  width: 100%;
 }
 
 .profile-hero {
@@ -12,34 +13,30 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #ECE9E1;
+  background: #EAE7DF;
   color: var(--text-primary);
   padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-bottom: 8px;
 }
 
 .profile-title {
-  font-size: 28px;
+  font-size: clamp(24px, 5vw, 32px);
   font-weight: 800;
-  letter-spacing: -0.03em;
   color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-@media (min-width: 768px) {
-  .profile-title {
-    font-size: 36px;
-  }
+  letter-spacing: -0.025em;
+  margin-bottom: 6px;
 }
 
 .profile-desc {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-secondary);
-  line-height: 1.5;
-  max-width: 680px;
+  line-height: 1.45;
+  max-width: 640px;
 }
 
 .saved-toast {
@@ -51,121 +48,78 @@
   gap: 6px;
   background: #111111;
   color: #FFFFFF;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 9999px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* Name card */
-.name-card {
+/* Identity card */
+.profile-identity-card {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 20px 22px;
 }
 
-.field-header {
+.identity-fields-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.field-icon-wrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: #F3F1EB;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-primary);
-}
-
-.field-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.field-sub {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.name-input {
-  width: 100%;
-  padding: 14px 18px;
-  background: #FAF8F5;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: var(--radius-md);
-  font-family: var(--font-heading);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  outline: none;
-  transition: all var(--duration-fast) var(--ease-smooth);
-}
-
-.name-input:focus {
-  border-color: #111111;
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
-}
-
-/* Presets bar */
-.presets-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 14px;
 }
 
-.presets-label {
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flex-1 { flex: 1; min-width: 100px; }
+.flex-2 { flex: 2; min-width: 180px; }
+
+.field-lbl {
   font-size: 12px;
   font-weight: 700;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-right: 4px;
 }
 
-.btn-preset {
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  border-radius: 9999px;
-  padding: 6px 14px;
-  font-size: 13px;
+.text-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #FAF8F5;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: 15px;
   font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-  transition: all var(--duration-fast) var(--ease-smooth);
-}
-
-.btn-preset:hover {
   color: var(--text-primary);
-  background: #F4F2EC;
-  transform: translateY(-1px);
+  outline: none;
+  box-sizing: border-box;
 }
 
-.reset-btn {
-  color: #DC2626;
+.text-input:focus {
+  border-color: #111111;
+  background: #FFFFFF;
 }
 
-.reset-btn:hover {
-  background: #FEE2E2;
+.onboarding-relaunch-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* Intake Sections */
-.allergens-section,
-.conditions-section {
+.profile-intake-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .section-title-wrap {
@@ -175,173 +129,86 @@
 }
 
 .section-title {
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .count-pill {
-  background: #ECE9E1;
+  background: #EAE7DF;
   color: var(--text-primary);
   padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .section-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.4;
+  margin-top: -4px;
 }
 
-/* Intake Grid (Allergen cards) */
-.intake-grid {
+.profile-tiles-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
 }
 
 @media (min-width: 640px) {
-  .intake-grid {
+  .profile-tiles-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
-  .intake-grid {
+  .profile-tiles-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
   }
 }
 
-.conditions-grid {
-  grid-template-columns: 1fr;
+.custom-tile-wrapper {
+  position: relative;
 }
 
-@media (min-width: 640px) {
-  .conditions-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Individual Intake Card */
-.intake-card {
-  background: #FAF8F5;
-  border: 1.5px solid transparent;
-  border-radius: var(--radius-md);
-  padding: 18px 16px;
+.remove-custom-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  transition: all var(--duration-fast) var(--ease-smooth);
-  user-select: none;
-}
-
-.intake-card:hover {
-  transform: translateY(-2px);
-  background: #F3EFE7;
-}
-
-.intake-card.selected {
-  background: var(--verdict-risk-subtle);
-  border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.08);
-}
-
-.intake-card.selected-condition {
-  background: var(--verdict-caution-subtle);
-  border-color: rgba(245, 158, 11, 0.4);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);
-}
-
-.intake-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.intake-icon-bubble {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #FFFFFF;
-  display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.intake-card.selected .intake-icon-bubble {
-  background: #FFFFFF;
-  color: var(--verdict-risk-accent);
-}
-
-.intake-card.selected-condition .intake-icon-bubble {
-  background: #FFFFFF;
-  color: var(--verdict-caution-accent);
-}
-
-.checkbox-indicator {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #FFFFFF;
-  transition: all var(--duration-fast) var(--ease-spring);
-}
-
-.checkbox-indicator.checked {
-  background: var(--verdict-risk-accent);
-  border-color: var(--verdict-risk-accent);
-  color: #FFFFFF;
-}
-
-.checkbox-indicator.checked-condition {
-  background: var(--verdict-caution-accent);
-  border-color: var(--verdict-caution-accent);
-  color: #FFFFFF;
-}
-
-.check-icon-pop {
-  animation: springPop 200ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.intake-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.intake-label {
-  font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.intake-desc {
-  font-size: 12px;
   color: var(--text-secondary);
-  line-height: 1.3;
+  transition: all var(--duration-fast);
+  z-index: 10;
 }
 
-/* Action button */
-.profile-action-bar {
+.remove-custom-btn:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.tile-other-trigger {
+  border-style: dashed;
+  border-color: rgba(0, 0, 0, 0.18);
+  background: #FAF8F5;
+}
+
+.tile-other-trigger:hover {
+  border-color: #111111;
+  background: #FFFFFF;
+}
+
+.profile-footer-cta {
   display: flex;
   justify-content: center;
   padding: 8px 0;
-}
-
-.continue-btn {
-  width: 100%;
-  max-width: 380px;
-  padding: 16px 28px;
-  font-size: 16px;
 }

@@ -93,13 +93,23 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   background-color: var(--bg-app);
   position: relative;
-  padding-bottom: 96px; /* space for bottom floating pill nav */
+  padding-bottom: 114px; /* Reserved safe-area for floating black pill dock on mobile */
+  width: 100%;
+  overflow-x: hidden;
 }
 
 @media (min-width: 1024px) {
   .app-container {
     padding-bottom: 40px;
   }
+}
+
+/* Global modal and card containment guardrail against mobile horizontal overflow */
+.nutri-modal-containment,
+.wellness-card,
+.nutri-card {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .main-content {

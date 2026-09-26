@@ -6,6 +6,9 @@ import HomeScreen from './screens/Home/HomeScreen';
 import ProfileScreen from './screens/Profile/ProfileScreen';
 import AnalyzeScreen from './screens/Analyze/AnalyzeScreen';
 import ResultsScreen from './screens/Results/ResultsScreen';
+import SearchScreen from './screens/Search/SearchScreen';
+import OnboardingScreen from './screens/Onboarding/OnboardingScreen';
+import StyleGuideScreen from './screens/StyleGuide/StyleGuideScreen';
 import DevCardsScreen from './screens/DevCards/DevCardsScreen';
 import './styles/theme.css';
 
@@ -32,6 +35,12 @@ export default function App() {
 
   const renderCurrentScreen = () => {
     switch (currentRoute) {
+      case '/search':
+        return <SearchScreen onNavigate={navigateTo} />;
+      case '/onboarding':
+        return <OnboardingScreen onNavigate={navigateTo} />;
+      case '/styleguide':
+        return <StyleGuideScreen onNavigate={navigateTo} />;
       case '/profile':
         return <ProfileScreen onNavigate={navigateTo} />;
       case '/analyze':
@@ -59,3 +68,4 @@ export default function App() {
     </ProfileProvider>
   );
 }
+

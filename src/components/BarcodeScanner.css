@@ -1,7 +1,8 @@
 .barcode-scanner-component {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  width: 100%;
 }
 
 .scanner-viewfinder-card {
@@ -9,17 +10,26 @@
   background: #141413;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  min-height: 280px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  aspect-ratio: 4 / 3;
+  min-height: 240px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
 }
 
 .scanner-video-feed {
   width: 100%;
-  max-width: 500px;
-  min-height: 280px;
+  height: 100%;
+}
+
+#nutrilens-qr-reader {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
 }
 
 #nutrilens-qr-reader video {
@@ -32,10 +42,7 @@
 /* Viewfinder reticle overlay */
 .reticle-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -45,40 +52,40 @@
 
 .corner-bracket {
   position: absolute;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-color: #E4FA75;
   border-style: solid;
   border-width: 0;
 }
 
 .corner-bracket.top-left {
-  top: 40px;
-  left: 40px;
+  top: 24px;
+  left: 24px;
   border-top-width: 3.5px;
   border-left-width: 3.5px;
   border-top-left-radius: 8px;
 }
 
 .corner-bracket.top-right {
-  top: 40px;
-  right: 40px;
+  top: 24px;
+  right: 24px;
   border-top-width: 3.5px;
   border-right-width: 3.5px;
   border-top-right-radius: 8px;
 }
 
 .corner-bracket.bottom-left {
-  bottom: 40px;
-  left: 40px;
+  bottom: 24px;
+  left: 24px;
   border-bottom-width: 3.5px;
   border-left-width: 3.5px;
   border-bottom-left-radius: 8px;
 }
 
 .corner-bracket.bottom-right {
-  bottom: 40px;
-  right: 40px;
+  bottom: 24px;
+  right: 24px;
   border-bottom-width: 3.5px;
   border-right-width: 3.5px;
   border-bottom-right-radius: 8px;
@@ -86,26 +93,26 @@
 
 .scanning-laser {
   position: absolute;
-  left: 44px;
-  right: 44px;
-  height: 2.5px;
+  left: 30px;
+  right: 30px;
+  height: 2px;
   background: linear-gradient(90deg, rgba(228, 250, 117, 0) 0%, #E4FA75 50%, rgba(228, 250, 117, 0) 100%);
-  box-shadow: 0 0 12px #E4FA75, 0 0 4px #FFFFFF;
-  animation: scanLaser 2.4s ease-in-out infinite;
+  box-shadow: 0 0 10px #E4FA75, 0 0 3px #FFFFFF;
+  animation: scanLaser 2.2s ease-in-out infinite;
 }
 
 .reticle-instructions {
   position: absolute;
-  bottom: 16px;
-  background: rgba(0, 0, 0, 0.7);
+  bottom: 14px;
+  background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(8px);
   color: #FFFFFF;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
+  gap: 6px;
+  padding: 5px 14px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -115,15 +122,16 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 32px 24px;
+  padding: 24px 20px;
   color: #FFFFFF;
-  gap: 10px;
-  max-width: 440px;
+  gap: 8px;
+  width: 100%;
+  max-width: 380px;
 }
 
-.fallback-icon {
-  width: 56px;
-  height: 56px;
+.fallback-icon-wrap {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   display: flex;
@@ -133,18 +141,29 @@
 }
 
 .fallback-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .fallback-message {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
   line-height: 1.4;
+  margin-bottom: 6px;
 }
 
-.retry-btn {
-  margin-top: 8px;
+/* 3 Mandated Fallbacks Stack */
+.mandated-fallbacks-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.mandated-fallbacks-stack .nutri-pill-btn {
+  justify-content: center;
+  width: 100%;
 }
 
 /* Idle state */
@@ -152,13 +171,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   color: rgba(255, 255, 255, 0.7);
 }
 
 .idle-pulse-ring {
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   display: flex;
@@ -168,37 +187,34 @@
 }
 
 .idle-text {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 
-.scanner-controls {
+.scanner-controls-bar {
   display: flex;
   justify-content: center;
 }
 
-.control-pill {
-  padding: 10px 22px;
-  font-size: 13px;
-}
-
-/* Manual & presets section */
-.manual-barcode-section {
-  background: #FFFFFF;
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-card);
+/* Manual & presets card */
+.manual-barcode-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  border: 1px solid var(--border-subtle);
+  gap: 14px;
+  padding: 20px;
+  transition: border-color var(--duration-fast);
+}
+
+.manual-barcode-card.is-focused-highlight {
+  border-color: #111111;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
 }
 
 .divider-label {
   display: flex;
   align-items: center;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -213,17 +229,18 @@
 }
 
 .divider-label span {
-  padding: 0 12px;
+  padding: 0 10px;
 }
 
 .manual-barcode-form {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .barcode-input {
   flex: 1;
-  padding: 12px 18px;
+  min-width: 0;
+  padding: 11px 16px;
   background: #FAF8F5;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-pill);
@@ -239,19 +256,15 @@
   background: #FFFFFF;
 }
 
-.scan-submit-btn {
-  padding: 12px 24px;
-}
-
 .preset-barcodes-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 6px;
+  gap: 8px;
+  padding-top: 4px;
 }
 
 .presets-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-secondary);
 }
@@ -259,18 +272,18 @@
 .presets-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .barcode-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: #FAF8F5;
   border: 1px solid var(--border-subtle);
   border-radius: 9999px;
-  padding: 6px 14px;
-  font-size: 12px;
+  padding: 5px 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-primary);
   cursor: pointer;

@@ -1,8 +1,7 @@
-/* Base RiskCard */
-.risk-card {
+.plain-risk-card {
   position: relative;
   background: var(--bg-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
   display: flex;
@@ -10,168 +9,173 @@
   border: 1px solid var(--border-subtle);
 }
 
-.risk-card:hover {
+.plain-risk-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover);
 }
 
-.risk-card-left-strip {
+.card-accent-indicator {
   width: 6px;
   flex-shrink: 0;
 }
 
-.risk-card-content {
+.card-inner-flow {
   flex: 1;
-  padding: 18px 20px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   overflow: hidden;
 }
 
-/* Header & Severity pill */
-.risk-card-header {
+/* Header with Icon + Plain English Headline */
+.card-plain-header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
 }
 
-.category-title {
-  font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-
-.severity-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  font-family: var(--font-heading);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-/* Evidence text */
-.risk-evidence {
-  font-size: 14px;
-  color: var(--text-primary);
-  line-height: 1.5;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-/* Footer: Trigger & Source */
-.risk-card-footer {
+.plain-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-.meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  line-height: 1.3;
-}
-
-.meta-icon {
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.meta-label {
-  font-weight: 600;
-  opacity: 0.7;
+.plain-headline {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
-.meta-value {
+/* Sentence body */
+.plain-sentence-body {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+/* Scientific name clarification */
+.scientific-clarification-note {
+  background: #F8F6F0;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.scientific-label {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+.scientific-text {
+  font-style: italic;
+  color: var(--text-primary);
+}
+
+/* Source expandable drawer */
+.source-reveal-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.source-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 12px;
   font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color var(--duration-fast);
+  width: fit-content;
+}
+
+.source-toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.source-expanded-drawer {
+  background: #F3F1EA;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.source-ref-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+.source-ref-text {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  font-weight: 500;
 }
 
 /* 1. Safe Variant */
-.severity-safe .risk-card-left-strip {
+.risk-card-safe .card-accent-indicator {
   background-color: var(--verdict-safe-accent);
 }
 
-.severity-safe .severity-pill {
+.risk-card-safe .plain-icon-wrapper {
   background-color: var(--verdict-safe-surface);
   color: var(--verdict-safe-text);
 }
 
-.severity-safe .trigger-tag {
-  background-color: var(--verdict-safe-subtle);
-  color: var(--verdict-safe-text);
-}
-
-.severity-safe .source-tag {
-  background-color: #F4F2EC;
-  color: var(--text-secondary);
-}
-
 /* 2. Caution Variant */
-.severity-caution .risk-card-left-strip {
+.risk-card-caution .card-accent-indicator {
   background-color: var(--verdict-caution-accent);
 }
 
-.severity-caution .severity-pill {
+.risk-card-caution .plain-icon-wrapper {
   background-color: var(--verdict-caution-surface);
   color: var(--verdict-caution-text);
 }
 
-.severity-caution .trigger-tag {
-  background-color: var(--verdict-caution-subtle);
-  color: var(--verdict-caution-text);
-}
-
-.severity-caution .source-tag {
-  background-color: #F4F2EC;
-  color: var(--text-secondary);
-}
-
 /* 3. Risk Variant */
-.severity-risk {
+.risk-card-risk {
   background: #FFFDFD;
 }
 
-.severity-risk .risk-card-left-strip {
+.risk-card-risk .card-accent-indicator {
   background-color: var(--verdict-risk-accent);
 }
 
-.severity-risk .severity-pill {
+.risk-card-risk .plain-icon-wrapper {
   background-color: var(--verdict-risk-surface);
   color: var(--verdict-risk-text);
 }
 
-.severity-risk .trigger-tag {
-  background-color: var(--verdict-risk-subtle);
-  color: var(--verdict-risk-text);
-}
-
-.severity-risk .source-tag {
-  background-color: #F4F2EC;
-  color: var(--text-secondary);
-}
-
 @media (max-width: 480px) {
-  .risk-card-content {
-    padding: 14px 16px;
-  }
-  
-  .risk-card-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .card-inner-flow {
+    padding: 16px;
   }
 }

@@ -1,345 +1,338 @@
 .results-screen {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  width: 100%;
 }
 
-.results-top-bar {
+.results-top-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.back-btn {
-  padding: 8px 18px;
-  font-size: 13px;
-}
-
-.profile-context-badge {
-  font-size: 12px;
-  color: var(--text-secondary);
-  background: #ECE9E1;
+.profile-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #EAE7DF;
   padding: 6px 14px;
   border-radius: 9999px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
 }
 
-/* Scaled-up Verdict Card (adapting reference's "Heart rate" card) */
-.hero-verdict-card {
+/* Hero Verdict Surface — Compact & Height-Guardrailed (Mission 3 fix) */
+.hero-verdict-surface {
   border-radius: var(--radius-xl);
-  padding: 30px 24px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   position: relative;
   overflow: hidden;
-  transition: all var(--duration-normal) var(--ease-smooth);
+  box-sizing: border-box;
 }
 
-@media (min-width: 768px) {
-  .hero-verdict-card {
-    padding: 36px 32px;
+@media (min-width: 640px) {
+  .hero-verdict-surface {
+    padding: 30px 28px;
+    gap: 16px;
   }
 }
 
-.verdict-card-top {
+.verdict-header-row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 
-.verdict-card-title-group {
+.verdict-icon-bubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.08);
 }
 
-.verdict-eyebrow {
-  font-size: 12px;
+.verdict-kicker {
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.8;
 }
 
-.verdict-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 18px;
-  border-radius: 9999px;
-  font-family: var(--font-heading);
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  width: fit-content;
-}
-
-.verdict-card-icon-wrap {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.verdict-card-body {
+.verdict-main-text-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.product-display-name {
-  font-size: 26px;
+.verdict-main-headline {
+  font-size: clamp(20px, 4.5vw, 28px);
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
 }
 
-@media (min-width: 768px) {
-  .product-display-name {
-    font-size: 32px;
-  }
+.product-identity-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.product-display-brand {
+.product-title-bold {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.product-brand-sub {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.verdict-subsentence {
   font-size: 14px;
-  font-weight: 600;
-  opacity: 0.8;
-  margin-top: -2px;
+  line-height: 1.45;
+  opacity: 0.9;
+  margin-top: 4px;
 }
 
-.verdict-summary-text {
-  font-size: 15px;
-  line-height: 1.5;
-  margin-top: 6px;
-  font-weight: 500;
-}
-
-/* 1. Safe Verdict Variant */
-.verdict-card-safe {
+/* Semantic Surfaces */
+.verdict-surface-safe {
   background-color: var(--verdict-safe-surface);
   color: var(--verdict-safe-text);
-  box-shadow: 0 16px 40px -8px rgba(228, 250, 117, 0.5);
+  box-shadow: 0 14px 34px -6px rgba(228, 250, 117, 0.45);
 }
 
-.verdict-pill-safe {
-  background: var(--verdict-safe-pill-bg);
-  color: var(--verdict-safe-pill-text);
-}
-
-/* 2. Caution Verdict Variant */
-.verdict-card-caution {
+.verdict-surface-caution {
   background-color: var(--verdict-caution-surface);
   color: var(--verdict-caution-text);
-  box-shadow: 0 16px 40px -8px rgba(253, 230, 138, 0.5);
+  box-shadow: 0 14px 34px -6px rgba(253, 230, 138, 0.45);
 }
 
-.verdict-pill-caution {
-  background: var(--verdict-caution-pill-bg);
-  color: var(--verdict-caution-pill-text);
-}
-
-/* 3. Risk Verdict Variant */
-.verdict-card-risk {
+.verdict-surface-risk {
   background-color: var(--verdict-risk-surface);
   color: var(--verdict-risk-text);
-  box-shadow: 0 16px 40px -8px rgba(254, 205, 211, 0.6);
+  box-shadow: 0 14px 34px -6px rgba(254, 205, 211, 0.55);
 }
 
-.verdict-pill-risk {
-  background: var(--verdict-risk-pill-bg);
-  color: var(--verdict-risk-pill-text);
-}
-
-/* Data Quality Badge (Exact 3-states from Mission 6) */
-.data-quality-container {
+/* Data Quality Badge: Hidden on Good, Rendered on Partial/Low */
+.data-quality-pill-banner {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.data-quality-pill {
-  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 16px;
-  border-radius: 9999px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   width: fit-content;
-  letter-spacing: 0.02em;
 }
 
-.dq-good {
-  background: rgba(21, 60, 25, 0.14);
-  color: #113615;
+.dq-icon {
+  flex-shrink: 0;
 }
 
-.dq-verify {
-  background: rgba(69, 38, 0, 0.16);
-  color: #381E00;
-}
-
-.dq-clearer {
-  background: rgba(80, 16, 12, 0.16);
-  color: #380805;
-}
-
-.dq-subtext {
-  font-size: 12px;
-  opacity: 0.85;
-  font-style: italic;
-}
-
-/* Mission 6 Interactive Verifier Bar */
-.dq-verifier-bar {
+/* Dev State Switcher */
+.dev-dq-toggle-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 18px 20px;
+  gap: 10px;
+  padding: 16px 18px;
 }
 
-.verifier-header {
+.dq-toggle-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
 }
 
-.verifier-title {
-  font-size: 13px;
+.dq-toggle-label {
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.verifier-note {
-  font-size: 12px;
+.dq-toggle-sub {
+  font-size: 11px;
   color: var(--text-secondary);
 }
 
-.verifier-buttons {
+.dq-toggle-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
-.dq-state-btn {
+.dq-chip-btn {
   background: #FAF8F5;
   border: 1px solid var(--border-subtle);
   border-radius: 9999px;
-  padding: 6px 14px;
-  font-size: 12px;
+  padding: 5px 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--duration-fast);
 }
 
-.dq-state-btn:hover {
-  background: #F0EDE4;
-  color: var(--text-primary);
-}
-
-.dq-state-btn.active {
+.dq-chip-btn.active {
   background: #111111;
   color: #FFFFFF;
   border-color: #111111;
 }
 
-/* Wholesome Banner (Mission 7) */
-.wholesome-banner {
-  background: #E4FA75;
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: #163A1D;
-  box-shadow: 0 8px 24px rgba(228, 250, 117, 0.3);
-}
-
-.wholesome-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(22, 58, 29, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.wholesome-title {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.wholesome-desc {
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-/* Findings Stack */
-.findings-section {
+/* Plain findings */
+.plain-findings-section {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.section-heading-row {
+.findings-title-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
 }
 
 .findings-heading {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--text-primary);
 }
 
-.findings-sub {
-  font-size: 13px;
+.findings-rules-count {
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
-.findings-stack {
+.findings-flow-stack {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.no-findings-text {
-  font-size: 14px;
-  color: var(--text-secondary);
-  padding: 16px;
-}
-
-/* Product Details */
-.product-details-card {
+/* Mission 8: Safer Alternatives */
+.alternatives-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
-.details-title {
-  font-size: 16px;
+.alternatives-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alternatives-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.alternatives-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .alternatives-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.alt-product-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+}
+
+.alt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.alt-brand {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.alt-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--verdict-safe-surface);
+  color: var(--verdict-safe-text);
+}
+
+.alt-name {
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.ingredients-tag-cloud {
+.alt-reason {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.honest-no-alternative-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.no-alt-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.no-alt-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Product summary */
+.product-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.ingredients-header {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ingredients-cloud {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.ingredient-tag {
+.ingredient-pill {
   background: #F4F2EC;
   color: var(--text-primary);
   font-size: 12px;
@@ -348,47 +341,41 @@
   font-weight: 500;
 }
 
-.nutrition-strip {
+.nutrition-metrics-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--border-subtle);
 }
 
-.nutri-item {
+.metric-box {
   background: #FAF8F5;
   border-radius: var(--radius-sm);
-  padding: 10px;
+  padding: 8px 10px;
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.nutri-lbl {
-  font-size: 11px;
-  font-weight: 600;
+.m-label {
+  font-size: 10px;
+  font-weight: 700;
   color: var(--text-tertiary);
   text-transform: uppercase;
 }
 
-.nutri-val {
+.m-val {
   font-family: var(--font-heading);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-/* Footer Action */
-.results-action-footer {
+/* Action footer */
+.results-cta-footer {
   display: flex;
   justify-content: center;
-  padding: 12px 0;
-}
-
-.scan-another-cta {
-  width: 100%;
-  max-width: 360px;
-  padding: 15px 28px;
+  padding-top: 4px;
 }

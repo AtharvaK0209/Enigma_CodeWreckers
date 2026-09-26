@@ -1,129 +1,168 @@
 import React from 'react';
-import { ScanLine, Camera, ShieldCheck, ArrowRight, HeartPulse, Sparkles, CheckCircle2, AlertTriangle, ShieldAlert } from 'lucide-react';
+import {
+  ScanLine,
+  Search,
+  ShieldCheck,
+  HeartPulse,
+  Clock,
+  ArrowRight,
+  ShieldAlert,
+  Sparkles,
+  Info
+} from 'lucide-react';
 import { useProfile } from '../../context/ProfileContext';
+import { THEME } from '../../styles/tokens';
+import PillButton from '../../components/common/PillButton';
+import Card from '../../components/common/Card';
 import './HomeScreen.css';
 
 export default function HomeScreen({ onNavigate }) {
   const { profile } = useProfile();
   const userName = profile.name || 'Friend';
-  const allergyCount = profile.allergies.length;
-  const conditionCount = profile.conditions.length;
+
+  // Count active allergen & condition rules
+  const activeAllergens = profile.allergies || [];
+  const activeConditions = profile.conditions || [];
+  const totalRulesCount = activeAllergens.length + activeConditions.length;
+
+  // Check for any custom allergens or limited conditions
+  const hasCustom = profile.customAllergens && profile.customAllergens.length > 0;
+  const hasLimitedCondition = activeConditions.some((c) => c === 'ckd' || c === 'pcos');
 
   return (
     <div className="home-screen anim-spring-pop">
-      {/* Welcome & Overview Header */}
-      <section className="home-header">
-        <div className="home-greeting">
-          <div className="greeting-sub">Wellness & Safety Dashboard</div>
-          <h1 className="greeting-title">Welcome back, {userName}</h1>
+      {/* Top Greeting Section */}
+      <section className="home-header-block">
+        <div className="home-greeting-text">
+          <span className="home-eyebrow">Food Safety Dashboard</span>
+          <h1 className="home-greeting-name">Welcome back, {userName}</h1>
         </div>
-        <div className="shield-avatar" onClick={() => onNavigate('/profile')}>
-          <ShieldCheck size={24} color="#181816" />
-        </div>
+        <button
+          type="button"
+          className="user-profile-badge"
+          onClick={() => onNavigate('/profile')}
+          title="Edit Profile"
+        >
+          <ShieldCheck size={22} color="#171715" />
+        </button>
       </section>
 
-      {/* Hero Highlight Card - Health Overview Reference Style (Lime surface with dark pill) */}
-      <section className="hero-verdict-preview">
-        <div className="highlight-metric-card">
-          <div className="metric-header">
-            <span className="metric-label">Active Protection Status</span>
-            <span className="metric-pill">Active Shield</span>
+      {/* Hero Highlight Card — Profile Protection Overview */}
+      <section className="home-overview-hero">
+        <Card variant="safe" className="protection-hero-card">
+          <div className="hero-top-status">
+            <span className="hero-status-kicker">Active Safety Protection</span>
+            <span className="hero-status-pill">Active Shield</span>
           </div>
 
-          <div className="metric-body">
-            <div className="metric-icon-bubble">
-              <HeartPulse size={28} color="#153C19" />
+          <div className="hero-main-content">
+            <div className="hero-icon-bubble">
+              <HeartPulse size={26} color="#14381B" />
             </div>
-            <div className="metric-value-block">
-              <h2 className="metric-headline">
-                {allergyCount > 0 ? `${allergyCount} Allergen Rules Monitored` : 'Baseline Mode'}
+            <div className="hero-text-block">
+              <h2 className="hero-rules-headline">
+                {totalRulesCount > 0 ? `${totalRulesCount} Rules Monitored` : 'Baseline Mode'}
               </h2>
-              <p className="metric-subtext">
-                {allergyCount > 0
-                  ? `Protecting against ${profile.allergies.map(a => a.replace('_', ' ')).join(', ')}`
-                  : 'Configure allergies in your profile to trigger safety alerts'}
+              <p className="hero-rules-summary">
+                {activeAllergens.length > 0
+                  ? `Filtering against ${activeAllergens.map((a) => {
+                      const preset = THEME.allergens.find((p) => p.id === a);
+                      const custom = profile.customAllergens.find((c) => c.id === a);
+                      return preset?.label || custom?.label || a;
+                    }).join(', ')}`
+                  : 'No specific allergens set. Configure your profile to trigger safety alerts.'}
               </p>
             </div>
           </div>
 
-          <div className="metric-footer">
-            <button className="btn-pill-primary" onClick={() => onNavigate('/analyze')}>
-              <ScanLine size={16} />
-              <span>Start Food Scan</span>
-            </button>
-            <button className="btn-pill-secondary" onClick={() => onNavigate('/profile')}>
-              <span>Edit Profile</span>
-              <ArrowRight size={14} />
-            </button>
+          {/* Honest Coverage Notice if custom allergens or CKD/PCOS are active */}
+          {(hasCustom || hasLimitedCondition) && (
+            <div className="hero-limited-disclaimer">
+              <Info size={13} className="disclaimer-icon" />
+              <span>
+                Note: Profile includes custom allergens or health conditions with partial data availability.
+              </span>
+            </div>
+          )}
+
+          <div className="hero-actions-row">
+            <PillButton
+              variant="primary"
+              size="md"
+              icon={ScanLine}
+              onClick={() => onNavigate('/analyze')}
+            >
+              Scan a Product
+            </PillButton>
+            <PillButton
+              variant="secondary"
+              size="md"
+              icon={Search}
+              onClick={() => onNavigate('/search')}
+            >
+              Search a Food
+            </PillButton>
           </div>
-        </div>
+        </Card>
       </section>
 
-      {/* Grid Cards - Wellness & My Health Reference */}
-      <section className="feature-grid">
-        {/* Card 1: Instant Barcode Scanner */}
-        <div className="wellness-card feature-card" onClick={() => onNavigate('/analyze')}>
-          <div className="feature-icon-badge barcode-icon">
-            <ScanLine size={24} color="#111111" />
+      {/* Primary Action Tiles */}
+      <section className="home-actions-grid">
+        <Card
+          interactive
+          className="action-tile-card"
+          onClick={() => onNavigate('/analyze')}
+        >
+          <div className="tile-icon-box scan-box">
+            <ScanLine size={24} />
           </div>
-          <div className="feature-card-content">
-            <h3 className="feature-card-title">Barcode Scanner</h3>
-            <p className="feature-card-desc">
-              Point your camera at any packaged food barcode for instant safety assessment.
-            </p>
+          <div className="tile-content">
+            <h3 className="tile-title">Scan Barcode / Label</h3>
+            <p className="tile-sub">Point your camera or upload a photo to verify ingredients instantly.</p>
           </div>
-          <div className="feature-arrow">
-            <ArrowRight size={16} />
-          </div>
-        </div>
+          <ArrowRight size={16} className="tile-arrow" />
+        </Card>
 
-        {/* Card 2: Multimodal Image OCR */}
-        <div className="wellness-card feature-card" onClick={() => onNavigate('/analyze')}>
-          <div className="feature-icon-badge photo-icon">
-            <Camera size={24} color="#111111" />
+        <Card
+          interactive
+          className="action-tile-card"
+          onClick={() => onNavigate('/search')}
+        >
+          <div className="tile-icon-box search-box">
+            <Search size={24} />
           </div>
-          <div className="feature-card-content">
-            <h3 className="feature-card-title">Label Photo OCR</h3>
-            <p className="feature-card-desc">
-              Snap a picture of the ingredient list or nutrition panel to detect hidden cross-contaminants.
-            </p>
+          <div className="tile-content">
+            <h3 className="tile-title">Search Food by Name</h3>
+            <p className="tile-sub">Look up snacks, sauces, and packaged products in our safety catalog.</p>
           </div>
-          <div className="feature-arrow">
-            <ArrowRight size={16} />
-          </div>
-        </div>
+          <ArrowRight size={16} className="tile-arrow" />
+        </Card>
       </section>
 
-      {/* Traffic-Light Legend Guide */}
-      <section className="wellness-card verdict-legend-card">
-        <h3 className="legend-title">How NutriLens Protects You</h3>
-        <p className="legend-subtitle">
-          Every product is evaluated against your personalized health baseline across 3 distinct verdict tiers:
-        </p>
-
-        <div className="verdict-tier-row">
-          <div className="tier-badge safe-tier">
-            <CheckCircle2 size={16} />
-            <span>Safe for you</span>
-          </div>
-          <span className="tier-desc">Zero triggers found across ingredients, additives, and allergen declarations.</span>
+      {/* Reserved Space: Recent Checks / History Placeholder (Mission 6 Constraint) */}
+      <section className="recent-history-section">
+        <div className="history-header">
+          <Clock size={16} />
+          <h2 className="history-title">Recent Checks</h2>
         </div>
 
-        <div className="verdict-tier-row">
-          <div className="tier-badge caution-tier">
-            <AlertTriangle size={16} />
-            <span>Caution advised</span>
+        <Card className="history-empty-card">
+          <div className="history-empty-icon">
+            <ScanLine size={28} />
           </div>
-          <span className="tier-desc">Cross-contact facility warnings, high sodium, or elevated sugars flagged.</span>
-        </div>
-
-        <div className="verdict-tier-row">
-          <div className="tier-badge risk-tier">
-            <ShieldAlert size={16} />
-            <span>Risk found</span>
-          </div>
-          <span className="tier-desc">Explicit direct match with a severe registered allergen in your profile.</span>
-        </div>
+          <h4 className="empty-history-heading">No items checked yet</h4>
+          <p className="empty-history-sub">
+            Your scanned products and search history will be saved right here for quick re-checking.
+          </p>
+          <PillButton
+            variant="outline"
+            size="sm"
+            icon={ScanLine}
+            onClick={() => onNavigate('/analyze')}
+          >
+            Scan your first item
+          </PillButton>
+        </Card>
       </section>
     </div>
   );

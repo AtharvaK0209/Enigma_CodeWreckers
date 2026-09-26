@@ -3,42 +3,69 @@ import {
   Nut,
   Milk,
   Egg,
-  Trees,
   Wheat,
+  Trees,
   Bean,
+  Fish,
+  Shrimp,
   Sparkles,
   HeartPulse,
   Activity,
-  Check,
+  ShieldAlert,
+  Sparkle,
+  Plus,
   User,
   ArrowRight,
   ShieldCheck,
   RotateCcw,
-  Sparkle
+  Check,
+  X
 } from 'lucide-react';
 import { useProfile } from '../../context/ProfileContext';
 import { THEME } from '../../styles/tokens';
+import PillButton from '../../components/common/PillButton';
+import Card from '../../components/common/Card';
+import IconTile from '../../components/common/IconTile';
 import './ProfileScreen.css';
 
-// Icon map for dynamic lookup
-const ICON_MAP = {
+const ALLERGEN_ICONS = {
   Nut,
   Milk,
   Egg,
-  Trees,
   Wheat,
+  Trees,
   Bean,
+  Fish,
+  Shrimp,
   Sparkles,
+};
+
+const CONDITION_ICONS = {
   HeartPulse,
   Activity,
+  ShieldAlert,
+  Sparkle,
 };
 
 export default function ProfileScreen({ onNavigate }) {
-  const { profile, setName, toggleAllergy, toggleCondition, resetProfile, setProfile } = useProfile();
+  const {
+    profile,
+    setName,
+    setAge,
+    toggleAllergy,
+    addCustomAllergen,
+    removeCustomAllergen,
+    toggleCondition,
+    resetProfile,
+  } = useProfile();
+
+  const [customInput, setCustomInput] = useState('');
+  const [showOtherInput, setShowOtherInput] = useState(false);
   const [showSavedToast, setShowSavedToast] = useState(false);
 
-  const handleNameChange = (e) => {
-    setName(e.target.value);
+  const triggerToast = () => {
+    setShowSavedToast(true);
+    setTimeout(() => setShowSavedToast(false), 1600);
   };
 
   const handleAllergyToggle = (id) => {
@@ -51,29 +78,14 @@ export default function ProfileScreen({ onNavigate }) {
     triggerToast();
   };
 
-  const triggerToast = () => {
-    setShowSavedToast(true);
-    setTimeout(() => setShowSavedToast(false), 1800);
-  };
-
-  const applyPreset = (presetType) => {
-    if (presetType === 'nuts') {
-      setProfile((prev) => ({
-        ...prev,
-        allergies: ['peanut', 'tree_nuts'],
-      }));
-    } else if (presetType === 'celiac_dairy') {
-      setProfile((prev) => ({
-        ...prev,
-        allergies: ['wheat', 'milk'],
-      }));
-    } else if (presetType === 'cardio_glycemic') {
-      setProfile((prev) => ({
-        ...prev,
-        conditions: ['hypertension', 'diabetes'],
-      }));
+  const handleAddCustom = (e) => {
+    e.preventDefault();
+    if (customInput.trim()) {
+      addCustomAllergen(customInput.trim());
+      setCustomInput('');
+      setShowOtherInput(false);
+      triggerToast();
     }
-    triggerToast();
   };
 
   return (
@@ -83,7 +95,7 @@ export default function ProfileScreen({ onNavigate }) {
         <div className="hero-text-wrap">
           <div className="profile-tag">
             <ShieldCheck size={14} />
-            <span>Health & Allergen Intake</span>
+            <span>Health & Safety Profile</span>
           </div>
           <h1 className="profile-title">Personal Safety Profile</h1>
           <p className="profile-desc">
@@ -95,177 +107,214 @@ export default function ProfileScreen({ onNavigate }) {
         {showSavedToast && (
           <div className="saved-toast anim-spring-pop">
             <Check size={14} />
-            <span>Preferences saved locally</span>
+            <span>Profile updated locally</span>
           </div>
         )}
       </section>
 
-      {/* Field 1: User Name (Optional) */}
-      <section className="wellness-card name-card">
-        <div className="field-header">
-          <div className="field-icon-wrap">
-            <User size={20} />
+      {/* Field 1: Name and Age */}
+      <Card className="profile-identity-card">
+        <div className="identity-fields-row">
+          <div className="field-group flex-2">
+            <label className="field-lbl">Your Name</label>
+            <input
+              type="text"
+              className="text-input"
+              placeholder="e.g. Yunus"
+              value={profile.name}
+              onChange={(e) => { setName(e.target.value); triggerToast(); }}
+              maxLength={40}
+            />
           </div>
-          <div>
-            <h2 className="field-title">Your Preferred Name</h2>
-            <p className="field-sub">Optional — used for customized greetings and reports</p>
+
+          <div className="field-group flex-1">
+            <label className="field-lbl">Age</label>
+            <input
+              type="number"
+              className="text-input"
+              placeholder="e.g. 24"
+              value={profile.age || ''}
+              onChange={(e) => { setAge(e.target.value); triggerToast(); }}
+              min="1"
+              max="120"
+            />
           </div>
         </div>
-        <div className="input-group">
-          <input
-            type="text"
-            className="name-input"
-            placeholder="e.g. Yunus, Alex, Taylor..."
-            value={profile.name}
-            onChange={handleNameChange}
-            maxLength={40}
-          />
+
+        <div className="onboarding-relaunch-row">
+          <PillButton
+            variant="secondary"
+            size="sm"
+            onClick={() => onNavigate('/onboarding')}
+          >
+            Launch Step-by-Step Onboarding Flow
+          </PillButton>
+          <PillButton
+            variant="ghost"
+            size="sm"
+            onClick={resetProfile}
+          >
+            Reset All
+          </PillButton>
         </div>
-      </section>
+      </Card>
 
-      {/* Quick Profile Presets */}
-      <section className="presets-bar">
-        <span className="presets-label">Quick Presets:</span>
-        <button
-          className="btn-preset"
-          onClick={() => applyPreset('nuts')}
-        >
-          🥜 Nut Allergies
-        </button>
-        <button
-          className="btn-preset"
-          onClick={() => applyPreset('celiac_dairy')}
-        >
-          🌾 Wheat & Dairy Free
-        </button>
-        <button
-          className="btn-preset"
-          onClick={() => applyPreset('cardio_glycemic')}
-        >
-          ❤️ Low Sodium & Sugar
-        </button>
-        <button
-          className="btn-preset reset-btn"
-          onClick={resetProfile}
-          title="Clear all filters"
-        >
-          <RotateCcw size={12} />
-          <span>Reset</span>
-        </button>
-      </section>
-
-      {/* Field 2 to 8: Seven Major Allergens */}
-      <section className="wellness-card allergens-section">
+      {/* Field 2: 9 Major Allergens + Custom */}
+      <section className="profile-intake-section">
         <div className="section-title-wrap">
           <h2 className="section-title">Major Food Allergens</h2>
-          <span className="count-pill">
-            {profile.allergies.length} Selected
-          </span>
+          <span className="count-pill">{profile.allergies.length} Selected</span>
         </div>
         <p className="section-desc">
-          Flagged with high-priority <strong style={{ color: 'var(--verdict-risk-accent)' }}>Risk Found</strong> status whenever detected in ingredients or manufacturing advisories.
+          Flagged with high-priority warnings whenever detected in ingredients or manufacturing advisories.
         </p>
 
-        <div className="intake-grid">
+        <div className="profile-tiles-grid">
           {THEME.allergens.map((alg) => {
-            const Icon = ICON_MAP[alg.icon] || Sparkle;
+            const Icon = ALLERGEN_ICONS[alg.icon] || Sparkles;
             const isSelected = profile.allergies.includes(alg.id);
-
             return (
-              <div
+              <IconTile
                 key={alg.id}
-                className={`intake-card ${isSelected ? 'selected' : ''}`}
-                onClick={() => handleAllergyToggle(alg.id)}
-                role="checkbox"
-                aria-checked={isSelected}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === ' ' || e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAllergyToggle(alg.id);
-                  }
-                }}
-              >
-                <div className="intake-card-top">
-                  <div className="intake-icon-bubble">
-                    <Icon size={22} />
-                  </div>
-                  <div className={`checkbox-indicator ${isSelected ? 'checked' : ''}`}>
-                    {isSelected && <Check size={12} strokeWidth={3} className="check-icon-pop" />}
-                  </div>
-                </div>
+                icon={Icon}
+                label={alg.label}
+                desc={alg.desc}
+                selected={isSelected}
+                selectionTone="risk"
+                onToggle={() => handleAllergyToggle(alg.id)}
+              />
+            );
+          })}
 
-                <div className="intake-info">
-                  <span className="intake-label">{alg.label}</span>
-                  <span className="intake-desc">{alg.desc}</span>
-                </div>
+          {/* User-defined custom allergens */}
+          {profile.customAllergens.map((custom) => {
+            const isSelected = profile.allergies.includes(custom.id);
+            return (
+              <div key={custom.id} className="custom-tile-wrapper">
+                <IconTile
+                  icon={Sparkles}
+                  label={`Custom: ${custom.label}`}
+                  desc="Custom keyword allergen"
+                  selected={isSelected}
+                  limitedCoverage={true}
+                  limitedNote={custom.limitedNote}
+                  selectionTone="risk"
+                  onToggle={() => handleAllergyToggle(custom.id)}
+                />
+                <button
+                  type="button"
+                  className="remove-custom-btn"
+                  onClick={() => removeCustomAllergen(custom.id)}
+                  title="Remove custom allergen"
+                >
+                  <X size={12} />
+                </button>
               </div>
             );
           })}
+
+          {/* Add Other Custom Allergen */}
+          <div
+            className="nutri-icon-tile tile-other-trigger"
+            onClick={() => setShowOtherInput(true)}
+            role="button"
+            tabIndex={0}
+          >
+            <div className="tile-top-row">
+              <div className="tile-icon-bubble">
+                <Plus size={22} />
+              </div>
+              <span className="limited-coverage-badge">Custom</span>
+            </div>
+            <div className="tile-body">
+              <h3 className="tile-label">Add Custom Allergen</h3>
+              <p className="tile-desc">Add a specific ingredient (e.g. Mustard, Kiwi)</p>
+            </div>
+          </div>
         </div>
+
+        {/* Custom Allergen Drawer */}
+        {showOtherInput && (
+          <Card className="custom-allergen-drawer anim-spring-pop">
+            <div className="drawer-header">
+              <h3 className="drawer-title">Add Custom Allergen</h3>
+              <button
+                type="button"
+                className="close-drawer-btn"
+                onClick={() => setShowOtherInput(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCustom} className="custom-input-form">
+              <input
+                type="text"
+                className="custom-text-field"
+                placeholder="e.g. Strawberries, Celery, Mustard..."
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                autoFocus
+              />
+              <PillButton type="submit" variant="primary" size="md">
+                Add
+              </PillButton>
+            </form>
+
+            <div className="trust-coverage-notice">
+              <span className="notice-icon">⚠️</span>
+              <p className="notice-text">
+                <strong>Limited coverage notice:</strong> Custom allergens use keyword matching,
+                which may not catch every chemical derivative or scientific name.
+              </p>
+            </div>
+          </Card>
+        )}
       </section>
 
-      {/* Field 9 & 10: Health Conditions */}
-      <section className="wellness-card conditions-section">
+      {/* Field 3: Health Conditions with Honesty about Coverage */}
+      <section className="profile-intake-section">
         <div className="section-title-wrap">
           <h2 className="section-title">Dietary Health Conditions</h2>
-          <span className="count-pill">
-            {profile.conditions.length} Monitored
-          </span>
+          <span className="count-pill">{profile.conditions.length} Monitored</span>
         </div>
         <p className="section-desc">
-          Evaluates nutritional density thresholds and flags <strong style={{ color: 'var(--verdict-caution-accent)' }}>Caution</strong> for high sodium or glycemic spikes.
+          Evaluates nutrient density thresholds against clinical guidelines.
         </p>
 
-        <div className="intake-grid conditions-grid">
+        <div className="profile-tiles-grid">
           {THEME.conditions.map((cond) => {
-            const Icon = ICON_MAP[cond.icon] || Activity;
+            const Icon = CONDITION_ICONS[cond.icon] || Activity;
             const isSelected = profile.conditions.includes(cond.id);
-
             return (
-              <div
+              <IconTile
                 key={cond.id}
-                className={`intake-card condition-item ${isSelected ? 'selected-condition' : ''}`}
-                onClick={() => handleConditionToggle(cond.id)}
-                role="checkbox"
-                aria-checked={isSelected}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === ' ' || e.key === 'Enter') {
-                    e.preventDefault();
-                    handleConditionToggle(cond.id);
-                  }
-                }}
-              >
-                <div className="intake-card-top">
-                  <div className="intake-icon-bubble">
-                    <Icon size={22} />
-                  </div>
-                  <div className={`checkbox-indicator ${isSelected ? 'checked-condition' : ''}`}>
-                    {isSelected && <Check size={12} strokeWidth={3} className="check-icon-pop" />}
-                  </div>
-                </div>
-
-                <div className="intake-info">
-                  <span className="intake-label">{cond.label}</span>
-                  <span className="intake-desc">{cond.desc}</span>
-                </div>
-              </div>
+                icon={Icon}
+                label={cond.label}
+                desc={cond.desc}
+                selected={isSelected}
+                limitedCoverage={!cond.isFullySupported}
+                limitedNote={cond.limitedNote}
+                selectionTone="caution"
+                onToggle={() => handleConditionToggle(cond.id)}
+              />
             );
           })}
         </div>
       </section>
 
-      {/* Floating / Bottom Action Bar */}
-      <section className="profile-action-bar">
-        <button
-          className="btn-pill-primary continue-btn"
+      {/* Action Footer */}
+      <div className="profile-footer-cta">
+        <PillButton
+          variant="primary"
+          size="lg"
+          iconRight={ArrowRight}
           onClick={() => onNavigate('/analyze')}
+          fullWidth
         >
-          <span>Ready to Scan Food</span>
-          <ArrowRight size={18} />
-        </button>
-      </section>
+          Ready to Scan Food
+        </PillButton>
+      </div>
     </div>
   );
 }

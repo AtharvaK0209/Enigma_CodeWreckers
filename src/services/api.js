@@ -1,54 +1,35 @@
 /**
  * NutriLens API Client
  * Single point of contact for food safety risk analysis.
- * Calls backend endpoints /api/analyze/barcode and /api/analyze/image,
- * with resilient fallback to local simulated intelligence when the stub backend is offline.
- */
-
-/**
- * @typedef {'safe' | 'caution' | 'risk'} Severity
- * 
- * @typedef {Object} RiskFinding
- * @property {string} category - Finding category (e.g. "Allergen Match", "Condition Alert", "Additive")
- * @property {Severity} severity - Severity level
- * @property {string} evidence - Detailed explanation
- * @property {string | null} [trigger] - Specific ingredient or metric that caused the flag
- * @property {string | null} [source] - Health standard or regulation reference
- * 
- * @typedef {'good' | 'verify_label' | 'clearer_photo'} DataQualityState
- * 
- * @typedef {Object} AnalysisResult
- * @property {Severity} verdict - Overall verdict ('safe' | 'caution' | 'risk')
- * @property {string} verdictTitle - Header for verdict card (e.g. "Safe for you", "Risk Found")
- * @property {string} verdictSummary - Concise summary of the evaluation
- * @property {DataQualityState} dataQuality - Status for data quality badge
- * @property {string} dataQualityMessage - Exact display text per Mission 6 spec
- * @property {RiskFinding[]} findings - List of findings
- * @property {Object} product - Product details (name, brand, image, ingredients)
+ * Supports /api/analyze/barcode, /api/analyze/image, and /api/search,
+ * with resilient offline database intelligence.
  */
 
 const API_BASE = '';
 
 // Pre-packaged product intelligence database for testing & fallback
-const PRODUCT_DATABASE = {
+export const PRODUCT_DATABASE = {
   // 1. Nutella (Tree Nuts, Milk, Soy)
   '8000500310427': {
+    id: '8000500310427',
     name: 'Hazelnut Cocoa Spread',
     brand: 'Nutella',
     image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80',
     ingredients: ['Sugar', 'Palm Oil', 'Hazelnuts (13%)', 'Skimmed Milk Powder (8.7%)', 'Fat-Reduced Cocoa (7.4%)', 'Emulsifier: Lecithins (Soy)', 'Vanillin'],
     nutrition: { sodium: '42mg', sugars: '56.3g', calories: '539 kcal' },
     allergensDetected: ['tree_nuts', 'milk', 'soy'],
+    primaryAllergenKey: 'tree_nuts',
     riskTriggers: {
       tree_nuts: { trigger: 'Hazelnuts (13%)', source: 'FDA Allergen Mandate' },
       milk: { trigger: 'Skimmed Milk Powder (8.7%)', source: 'Food Allergen Labeling Act' },
       soy: { trigger: 'Soy Lecithins', source: 'FDA Allergen Mandate' },
       diabetes: { trigger: 'Sugar 56.3g / 100g', source: 'ADA Sugar Guidelines' },
-    }
+    },
   },
 
   // 2. Oreo Cookies (Wheat, Soy, Cross-contact Milk/Peanut)
   '7622210449283': {
+    id: '7622210449283',
     name: 'Original Sandwich Cookies',
     brand: 'Oreo',
     image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&auto=format&fit=crop&q=80',
@@ -56,74 +37,102 @@ const PRODUCT_DATABASE = {
     nutrition: { sodium: '380mg', sugars: '41g', calories: '474 kcal' },
     allergensDetected: ['wheat', 'soy'],
     crossContact: ['milk', 'peanut'],
+    primaryAllergenKey: 'wheat',
     riskTriggers: {
       wheat: { trigger: 'Wheat Flour & Wheat Starch', source: 'Codex Alimentarius Gluten Standard' },
       soy: { trigger: 'Soya Lecithins', source: 'FALCPA Guidance' },
       milk: { trigger: 'Facility cross-contact with Milk', source: 'Label Advisory Note' },
       peanut: { trigger: 'May contain peanut traces', source: 'Manufacturer Advisory' },
       diabetes: { trigger: 'Glucose-Fructose Syrup (41g sugars)', source: 'ADA Sugar Alert' },
-    }
+    },
   },
 
   // 3. Organic Rolled Oats (Clean / Safe / Minimal Sodium)
   '030000010204': {
+    id: '030000010204',
     name: 'Organic Whole Grain Rolled Oats',
     brand: 'Bob\'s Red Mill',
     image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80',
     ingredients: ['100% Whole Grain Rolled Oats (Certified Gluten-Free)'],
     nutrition: { sodium: '0mg', sugars: '1g', calories: '150 kcal' },
     allergensDetected: [],
-    riskTriggers: {}
+    riskTriggers: {},
   },
 
   // 4. Energy Drink (Severe Hypertension & Diabetes concern)
   '5449000000996': {
+    id: '5449000000996',
     name: 'Nitro Surge Carbonated Energy Drink',
     brand: 'Volt Energy',
     image: 'https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=500&auto=format&fit=crop&q=80',
     ingredients: ['Carbonated Water', 'High Fructose Corn Syrup', 'Citric Acid', 'Taurine', 'Sodium Citrate', 'Caffeine (160mg)', 'Sodium Benzoate', 'Sucralose', 'Niacinamide'],
     nutrition: { sodium: '840mg', sugars: '54g', calories: '210 kcal' },
     allergensDetected: [],
+    primaryAllergenKey: 'hypertension',
     riskTriggers: {
       hypertension: { trigger: 'Sodium 840mg & 160mg Synthetic Caffeine', source: 'AHA Cardiovascular Warning' },
       diabetes: { trigger: 'High Fructose Corn Syrup (54g sugars)', source: 'ADA Glycemic Alert' },
-    }
+    },
   },
 
-  // 5. Sesame Hummus Crisp (Sesame, Wheat, Soybean)
+  // 5. Sesame Hummus Crisps (Sesame, Wheat)
   '041570054320': {
+    id: '041570054320',
     name: 'Tahini & Sesame Baked Hummus Crisps',
     brand: 'Terra Mediterranean',
     image: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=500&auto=format&fit=crop&q=80',
     ingredients: ['Chickpea Flour', 'Sesame Seeds (14%)', 'Pure Tahini (Sesame Paste)', 'Sunflower Oil', 'Wheat Starch', 'Sea Salt', 'Garlic Powder'],
     nutrition: { sodium: '460mg', sugars: '2g', calories: '140 kcal' },
     allergensDetected: ['sesame', 'wheat'],
+    primaryAllergenKey: 'sesame',
     riskTriggers: {
       sesame: { trigger: 'Sesame Seeds & Pure Tahini (14%)', source: 'FASTER Act of 2021 (US Sesame Mandate)' },
       wheat: { trigger: 'Wheat Starch', source: 'FDA Gluten Standards' },
-    }
+    },
   },
 
-  // 6. Egg Mayonnaise (Egg, Mustard)
-  '048001213485': {
-    name: 'Real Gourmet Egg Mayonnaise',
-    brand: 'Hellmann\'s',
-    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500&auto=format&fit=crop&q=80',
-    ingredients: ['Canola Oil', 'Water', 'Liquid Whole Egg', 'Liquid Egg Yolk', 'Vinegar', 'Salt', 'Sugar', 'Mustard Flour', 'Lemon Juice Concentrate'],
-    nutrition: { sodium: '190mg', sugars: '0g', calories: '180 kcal' },
-    allergensDetected: ['egg'],
+  // 6. Snickers Chocolate Bar (Peanuts, Milk, Egg, Soy)
+  '040000000001': {
+    id: '040000000001',
+    name: 'Milk Chocolate Peanut & Caramel Bar',
+    brand: 'Snickers',
+    image: 'https://images.unsplash.com/photo-1582293041079-7814c2f12063?w=500&auto=format&fit=crop&q=80',
+    ingredients: ['Milk Chocolate (Sugar, Cocoa Butter, Chocolate, Skim Milk, Lactose, Milkfat, Soy Lecithin)', 'Peanuts', 'Corn Syrup', 'Sugar', 'Palm Oil', 'Skim Milk', 'Lactose', 'Salt', 'Egg Whites', 'Artificial Flavor'],
+    nutrition: { sodium: '120mg', sugars: '28g', calories: '250 kcal' },
+    allergensDetected: ['peanut', 'milk', 'egg', 'soy'],
+    primaryAllergenKey: 'peanut',
     riskTriggers: {
-      egg: { trigger: 'Whole Egg & Liquid Egg Yolk', source: 'FDA Major Allergen Rules' }
-    }
-  }
+      peanut: { trigger: 'Roasted Peanuts', source: 'FDA Food Allergen Labeling Act' },
+      milk: { trigger: 'Milk Chocolate & Skim Milk', source: 'Food Allergen Labeling Act' },
+      egg: { trigger: 'Egg Whites', source: 'FDA Food Allergen Labeling Act' },
+      soy: { trigger: 'Soy Lecithin', source: 'FALCPA Guidance' },
+      diabetes: { trigger: 'Corn Syrup & Sugar (28g sugars)', source: 'ADA Dietary Guidelines' },
+    },
+  },
+
+  // 7. Organic Creamy Peanut Butter (Peanut)
+  '040000000002': {
+    id: '040000000002',
+    name: 'Organic Creamy Roasted Peanut Butter',
+    brand: 'Jif Pure',
+    image: 'https://images.unsplash.com/photo-1568471173242-461f0a730452?w=500&auto=format&fit=crop&q=80',
+    ingredients: ['Organic Dry Roasted Peanuts', 'Sea Salt'],
+    nutrition: { sodium: '65mg', sugars: '2g', calories: '190 kcal' },
+    allergensDetected: ['peanut'],
+    primaryAllergenKey: 'peanut',
+    riskTriggers: {
+      peanut: { trigger: 'Dry Roasted Peanuts (99%)', source: 'FDA Major Allergen Rules' },
+    },
+  },
 };
 
 /**
  * Evaluates product contents against user profile to synthesize RiskFindings & verdict
  */
-function evaluateProductSafety(product, userProfile = {}, forcedDataQuality = null) {
+export function evaluateProductSafety(product, userProfile = {}, forcedDataQuality = null) {
   const profileAllergies = userProfile.allergies || [];
   const profileConditions = userProfile.conditions || [];
+  const customAllergens = userProfile.customAllergens || [];
   const findings = [];
 
   let highestSeverity = 'safe';
@@ -135,20 +144,38 @@ function evaluateProductSafety(product, userProfile = {}, forcedDataQuality = nu
     if (profileAllergies.includes(alg)) {
       highestSeverity = 'risk';
       findings.push({
+        headline: `Contains ${alg.replace('_', ' ')}`,
         category: 'Allergen Alert',
         severity: 'risk',
         evidence: `Direct allergen match detected in ingredients. Severe reaction risk based on your saved profile.`,
         trigger: triggerData.trigger || `Contains ${alg}`,
-        source: triggerData.source || 'FDA Food Allergen Labeling Act'
+        source: triggerData.source || 'FDA Food Allergen Labeling Act',
       });
     } else {
-      // In product, but user has no recorded allergy
       findings.push({
+        headline: `Verified clear of ${alg.replace('_', ' ')} restrictions`,
         category: 'Ingredient Notice',
         severity: 'safe',
         evidence: `Contains ${alg.replace('_', ' ')}. Not flagged in your personal allergy profile.`,
         trigger: triggerData.trigger || null,
-        source: triggerData.source || 'General Labeling'
+        source: triggerData.source || 'General Labeling Standards',
+      });
+    }
+  });
+
+  // 1b. Custom Allergen Keyword Match
+  customAllergens.forEach((custom) => {
+    const keyword = custom.label.toLowerCase();
+    const matchedIng = product.ingredients?.find((ing) => ing.toLowerCase().includes(keyword));
+    if (matchedIng) {
+      highestSeverity = 'risk';
+      findings.push({
+        headline: `Contains custom allergen: ${custom.label}`,
+        category: 'Custom Allergen Match',
+        severity: 'risk',
+        evidence: `Ingredient list contains "${matchedIng}", matching your custom-defined allergen rule for "${custom.label}".`,
+        trigger: matchedIng,
+        source: 'Custom User Allergen Filter (Keyword Heuristic)',
       });
     }
   });
@@ -159,34 +186,37 @@ function evaluateProductSafety(product, userProfile = {}, forcedDataQuality = nu
     if (profileAllergies.includes(alg)) {
       if (highestSeverity !== 'risk') highestSeverity = 'caution';
       findings.push({
+        headline: `May contain trace ${alg.replace('_', ' ')}`,
         category: 'Cross-Contact Advisory',
         severity: 'caution',
-        evidence: `Manufactured in a facility or line sharing equipment with ${alg.replace('_', ' ')}. May contain trace residues.`,
+        evidence: `Manufactured in a facility or line sharing equipment with ${alg.replace('_', ' ')}. May contain microscopic traces.`,
         trigger: product.riskTriggers?.[alg]?.trigger || `May contain traces of ${alg}`,
-        source: 'Manufacturer Cross-Contact Notice'
+        source: 'Manufacturer Cross-Contact Voluntary Notice',
       });
     }
   });
 
-  // 3. Health Conditions (Hypertension, Diabetes)
+  // 3. Health Conditions (Hypertension, Diabetes, CKD, PCOS)
   if (profileConditions.includes('hypertension')) {
     const triggerData = product.riskTriggers?.hypertension;
     if (triggerData) {
       if (highestSeverity !== 'risk') highestSeverity = 'caution';
       findings.push({
+        headline: 'Elevated sodium for blood pressure',
         category: 'Hypertension Concern',
         severity: 'caution',
-        evidence: `Elevated sodium content may exceed recommended daily threshold for cardiovascular health.`,
+        evidence: `Elevated sodium content exceeds recommended cardiovascular threshold.`,
         trigger: triggerData.trigger,
-        source: triggerData.source || 'WHO Sodium Reduction Guidelines'
+        source: triggerData.source || 'WHO Sodium Reduction Guidelines',
       });
     } else {
       findings.push({
+        headline: 'Low sodium cardiac compliance',
         category: 'Sodium Safe',
         severity: 'safe',
         evidence: `Low sodium profile compliant with cardiovascular dietary guidelines.`,
         trigger: product.nutrition?.sodium ? `Sodium: ${product.nutrition.sodium}` : null,
-        source: 'AHA Heart-Healthy Guidance'
+        source: 'AHA Heart-Healthy Guidance',
       });
     }
   }
@@ -196,99 +226,101 @@ function evaluateProductSafety(product, userProfile = {}, forcedDataQuality = nu
     if (triggerData) {
       if (highestSeverity !== 'risk') highestSeverity = 'caution';
       findings.push({
+        headline: 'Added sugars may spike blood glucose',
         category: 'Glycemic Concern',
         severity: 'caution',
-        evidence: `High sugar or rapid-glycemic sweeteners detected which can trigger glucose spikes.`,
+        evidence: `Rapid-glycemic sugars or corn sweeteners detected which can trigger glucose spikes.`,
         trigger: triggerData.trigger,
-        source: triggerData.source || 'ADA Dietary Guidelines'
+        source: triggerData.source || 'ADA Dietary Guidelines',
       });
     } else {
       findings.push({
+        headline: 'Sugar controlled formulation',
         category: 'Sugar Controlled',
         severity: 'safe',
         evidence: `Low added sugar formulation suitable for regulated glycemic management.`,
         trigger: product.nutrition?.sugars ? `Sugars: ${product.nutrition.sugars}` : null,
-        source: 'ADA Dietary Guidelines'
+        source: 'ADA Dietary Guidelines',
       });
     }
   }
 
-  // 4. Default safe finding if nothing was triggered
-  if (findings.length === 0) {
+  if (profileConditions.includes('ckd')) {
     findings.push({
-      category: 'Wholesome Formulation',
-      severity: 'safe',
-      evidence: 'No allergens, additives, or health hazards detected matching your profile.',
-      trigger: 'Clean ingredient spectrum',
-      source: 'NutriLens Verification Standard'
+      headline: 'Kidney nutrient check (Limited coverage)',
+      category: 'CKD Advisory',
+      severity: 'caution',
+      evidence: 'Potassium and phosphorus data is not declared by the manufacturer on standard packaging. Consult physical label if on a strict renal limit.',
+      trigger: 'Potassium/Phosphorus undeclared',
+      source: 'National Kidney Foundation Labeling Notes',
     });
   }
 
-  // Determine Data Quality State (Exact 3-states from Mission 6 spec)
-  let dataQuality = forcedDataQuality || 'good';
-  let dataQualityMessage = 'Verified data';
-  if (dataQuality === 'verify_label') {
-    dataQualityMessage = 'Please verify against the physical label';
-  } else if (dataQuality === 'clearer_photo') {
-    dataQualityMessage = 'Please provide a clearer photo';
+  // 4. Fallback safe finding if nothing was triggered
+  if (findings.length === 0) {
+    findings.push({
+      headline: 'Clean ingredient spectrum',
+      category: 'Wholesome Formulation',
+      severity: 'safe',
+      evidence: 'No allergens, additives, or health hazards detected matching your profile.',
+      trigger: 'Wholesome ingredient formulation',
+      source: 'NutriLens Verification Standard',
+    });
   }
 
-  let verdictTitle = 'Safe for you';
-  let verdictSummary = 'All ingredients clear of your profile restrictions and health goals.';
+  // Mission 4: Exact copy mappings
+  let verdictTitle = 'Looks safe for you';
+  let verdictSummary = 'All detected ingredients are clear of your personal restrictions and dietary goals.';
 
   if (highestSeverity === 'risk') {
-    verdictTitle = 'Risk found';
-    verdictSummary = `Direct match with restricted allergen(s). We advise against consumption.`;
+    verdictTitle = 'This product may not be safe for you';
+    verdictSummary = 'We detected ingredients that directly conflict with your saved profile restrictions.';
   } else if (highestSeverity === 'caution') {
-    verdictTitle = 'Caution advised';
+    verdictTitle = 'A few things to check';
     verdictSummary = 'May contain cross-contact allergens or elevated nutrients under your watch.';
   }
+
+  const dataQuality = forcedDataQuality || 'good';
 
   return {
     verdict: highestSeverity,
     verdictTitle,
     verdictSummary,
     dataQuality,
-    dataQualityMessage,
     findings,
     product: {
+      id: product.id,
       name: product.name,
       brand: product.brand,
       image: product.image,
       ingredients: product.ingredients,
       nutrition: product.nutrition,
-      barcode: product.barcode || null,
-    }
+      barcode: product.barcode || product.id,
+      primaryAllergenKey: product.primaryAllergenKey || null,
+    },
   };
 }
 
 /**
- * Mission 1 & 3: Analyze product by barcode
- * @param {string} code - Barcode string
- * @param {Object} [userProfile] - User health & allergy profile
- * @returns {Promise<AnalysisResult>}
+ * Analyze product by barcode
  */
 export async function analyzeBarcode(code, userProfile = {}) {
   const cleanCode = (code || '').trim();
 
-  // Try real backend endpoint first
   try {
     const response = await fetch(`${API_BASE}/api/analyze/barcode`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ barcode: cleanCode, userProfile })
+      body: JSON.stringify({ barcode: cleanCode, userProfile }),
     });
 
     if (response.ok) {
-      const data = await response.json();
-      return data;
+      return await response.json();
     }
   } catch (err) {
-    // Backend offline / stub fallback
-    console.info('[NutriLens API] Remote backend unavailable, using smart local intelligence engine:', err.message);
+    console.info('[NutriLens API] Remote backend unavailable, using local registry:', err.message);
   }
 
-  // Edge case 1: Special trigger code for "Barcode Not Found"
   if (cleanCode === '999999999999' || cleanCode.startsWith('404')) {
     const error = new Error('Product not found in international food safety database.');
     error.code = 'BARCODE_NOT_FOUND';
@@ -296,84 +328,110 @@ export async function analyzeBarcode(code, userProfile = {}) {
     throw error;
   }
 
-  // Lookup in database or generate realistic analysis
   let product = PRODUCT_DATABASE[cleanCode];
 
   if (!product) {
-    // If not in static table, simulate unknown product or check generic digit pattern
     if (cleanCode.length < 5) {
       const error = new Error('Invalid barcode format. Please re-align barcode.');
       error.code = 'INVALID_BARCODE';
       throw error;
     }
 
-    // Default sensible demo item (Organic Snack Mix)
     product = {
+      id: cleanCode,
       name: `Wholesome Snack Batch #${cleanCode.slice(-4)}`,
       brand: 'Harvest Natural',
       image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=500&auto=format&fit=crop&q=80',
       ingredients: ['Whole Rolled Oats', 'Honey', 'Almonds', 'Sunflower Seeds', 'Sea Salt'],
       nutrition: { sodium: '110mg', sugars: '6g', calories: '160 kcal' },
       allergensDetected: ['tree_nuts'],
+      primaryAllergenKey: 'tree_nuts',
       riskTriggers: {
-        tree_nuts: { trigger: 'Whole Roasted Almonds', source: 'Food Allergen Labeling Act' }
-      }
+        tree_nuts: { trigger: 'Whole Roasted Almonds', source: 'Food Allergen Labeling Act' },
+      },
     };
   }
 
-  product.barcode = cleanCode;
-  // Simulate natural network latency (400ms)
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 250));
   return evaluateProductSafety(product, userProfile);
 }
 
 /**
- * Mission 1 & 4: Analyze product by image (base64)
- * @param {string} base64 - Base64 encoded image string or data URI
- * @param {Object} [userProfile] - User health & allergy profile
- * @param {Object} [options] - Options (e.g. simulated edge case)
- * @returns {Promise<AnalysisResult>}
+ * Analyze product by image (base64)
  */
 export async function analyzeImage(base64, userProfile = {}, options = {}) {
-  // Try real backend endpoint first
   try {
     const response = await fetch(`${API_BASE}/api/analyze/image`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64, userProfile, ...options })
+      body: JSON.stringify({ image: base64, userProfile, ...options }),
     });
 
     if (response.ok) {
-      const data = await response.json();
-      return data;
+      return await response.json();
     }
   } catch (err) {
     console.info('[NutriLens API] Remote backend unavailable, processing via local vision pipeline:', err.message);
   }
 
-  // Check for Edge Case 2: Blurry / Unreadable Image Trigger
   if (options.forceUnreadable || (base64 && base64.includes('SIMULATE_BLURRY_IMAGE'))) {
     const error = new Error('Image too blurry or poorly lit. The ingredient panel could not be transcribed.');
     error.code = 'IMAGE_UNREADABLE';
     throw error;
   }
 
-  // Simulate vision analysis delay (800ms) to give the user a tactile "Gemini analyzing..." experience
-  await new Promise((r) => setTimeout(r, 800));
+  await new Promise((r) => setTimeout(r, 450));
 
-  // Determine which demo product to return based on options or cyclical rotation
   const sampleKeys = Object.keys(PRODUCT_DATABASE);
   const selectedKey = options.productKey || sampleKeys[Math.floor(Math.random() * sampleKeys.length)];
   const product = PRODUCT_DATABASE[selectedKey] || PRODUCT_DATABASE['8000500310427'];
-
-  // Check if caller wants specific data quality state test
   const dataQuality = options.dataQuality || 'good';
 
   return evaluateProductSafety(product, userProfile, dataQuality);
 }
 
+/**
+ * Mission 7: Search food catalog by product or brand name
+ * @param {string} query - Search term (e.g. "Snickers", "Nutella")
+ * @param {Object} [userProfile] - User profile
+ * @returns {Promise<Array>} List of matching products evaluated for safety
+ */
+export async function searchFood(query, userProfile = {}) {
+  const cleanQ = (query || '').trim().toLowerCase();
+  if (!cleanQ) return [];
+
+  // Try real backend search endpoint
+  try {
+    const response = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(cleanQ)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: cleanQ, userProfile }),
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (err) {
+    console.info('[NutriLens API] Remote search unavailable, querying local food registry:', err.message);
+  }
+
+  // Simulate network latency (200ms)
+  await new Promise((r) => setTimeout(r, 200));
+
+  const items = Object.values(PRODUCT_DATABASE);
+  const matches = items.filter((item) => {
+    const nameMatch = item.name.toLowerCase().includes(cleanQ);
+    const brandMatch = (item.brand || '').toLowerCase().includes(cleanQ);
+    const ingredientMatch = item.ingredients.some((ing) => ing.toLowerCase().includes(cleanQ));
+    return nameMatch || brandMatch || ingredientMatch;
+  });
+
+  return matches.map((product) => evaluateProductSafety(product, userProfile));
+}
+
 export default {
   analyzeBarcode,
   analyzeImage,
+  searchFood,
   PRODUCT_DATABASE,
 };
