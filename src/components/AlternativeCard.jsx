@@ -13,6 +13,7 @@ export default function AlternativeCard({
   image,
   tag = 'Verified Safe Alternative',
   reason,
+  swapTip,
   nutrition,
   onClick,
 }) {
@@ -33,6 +34,11 @@ export default function AlternativeCard({
         <div className="alt-card-info">
           <h3 className="alt-card-title">{name}</h3>
           <p className="alt-card-reason">{reason}</p>
+          {swapTip && (
+            <p className="alt-card-tip" style={{ fontSize: '12px', color: '#047857', marginTop: '6px', fontWeight: 500 }}>
+              💡 Swap Tip: {swapTip}
+            </p>
+          )}
         </div>
       </div>
 

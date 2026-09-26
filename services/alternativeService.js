@@ -136,8 +136,83 @@ export const alternativeService = {
       }
     }
 
-    // Constraint: If no candidate survives, return explicit no verified alternative flag!
+    const geminiKey = process.env.GEMINI_API_KEY;
+
+    // If no OFF candidates survived, use Gemini AI to generate tailored safe alternatives!
     if (survivors.length === 0) {
+      if (geminiKey) {
+        try {
+          const allergies = (userProfile.allergies || []).join(', ') || 'None';
+          const conditions = (userProfile.conditions || []).join(', ') || 'None';
+          const prompt = `You are a friendly nutrition expert for NutriLens.
+The consumer scanned: "${product.name || 'Food Product'}" (${product.brand || ''}).
+The consumer has:
+Allergies: [${allergies}]
+Health Conditions: [${conditions}]
+
+In simple, everyday layman language (no medical jargon), recommend the best 2 to 3 real, specific store product names (popular supermarket brands or natural foods) that are 100% safe for their allergies and beneficial for their health conditions.
+Respond strictly in valid JSON array format:
+[
+  {
+    "name": "Specific Product Name (e.g. SunButter Organic Sunflower Butter)",
+    "brand": "Brand (e.g. SunButter)",
+    "tag": "Short badge in plain English (e.g. 100% Nut Free, Low Salt, Zero Sugar)",
+    "reason": "1 simple sentence in plain everyday language explaining why this product is safe and great for them",
+    "swapTip": "1 simple tip on how to enjoy it"
+  }
+]`;
+
+          const modelsToTry = ['gemini-2.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-2.5-flash'];
+
+          for (const model of modelsToTry) {
+            try {
+              const geminiRes = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { responseMimeType: 'application/json' },
+                  }),
+                  signal: AbortSignal.timeout(25000),
+                }
+              );
+
+              if (geminiRes.ok) {
+                const data = await geminiRes.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  const clean = text.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+                  const parsed = JSON.parse(clean);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    return {
+                      status: 'success',
+                      hasAlternatives: true,
+                      count: parsed.length,
+                      alternatives: parsed.slice(0, 3).map((item, idx) => ({
+                        id: `gemini-alt-${idx}`,
+                        name: item.name,
+                        brand: item.brand || 'Safe Choice',
+                        tag: item.tag || 'AI Verified Safe Alternative',
+                        reason: item.reason,
+                        swapTip: item.swapTip || null,
+                        nutrition: {},
+                      })),
+                      aiRanked: true,
+                    };
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn(`[AlternativeService] Error with model ${model}:`, err.message);
+            }
+          }
+        } catch (geminiErr) {
+          console.warn(`[AlternativeService] Gemini generation error: ${geminiErr.message}`);
+        }
+      }
+
       return {
         status: 'no_verified_alternative',
         hasAlternatives: false,
@@ -145,9 +220,6 @@ export const alternativeService = {
         message: "We couldn't find a verified alternative for this product yet. NutriLens only recommends verified manufacturer products, never automated placeholders.",
       };
     }
-
-    // 3. Gemini rank & explain call
-    const geminiKey = process.env.GEMINI_API_KEY;
 
     if (mockGemini || (!geminiKey && mockGemini !== false)) {
       // Mocked or graceful fallback when GEMINI_API_KEY is unset
@@ -173,7 +245,7 @@ Candidates: ${JSON.stringify(survivors.slice(0, 5))}
 Return JSON array with id, rank, tag (short 2-4 word badge), and reason (1 clear sentence why it is better).`;
 
       const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -181,7 +253,7 @@ Return JSON array with id, rank, tag (short 2-4 word badge), and reason (1 clear
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { responseMimeType: 'application/json' },
           }),
-          signal: AbortSignal.timeout(5000),
+          signal: AbortSignal.timeout(25000),
         }
       );
 

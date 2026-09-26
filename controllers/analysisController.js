@@ -22,45 +22,75 @@ async function generateAiExplanation({ product, userProfile, verdict, findings, 
             .join(', ')
         : 'Unspecified');
 
-    const prompt = `You are a clinical dietitian and food safety AI for NutriLens.
-Evaluate this food product for a consumer:
+    const prompt = `You are a friendly, expert nutrition advisor for NutriLens.
+Speak in simple, easy-to-understand layman language (no medical jargon, no complex scientific terms). Write like a caring friend giving clear, straightforward advice.
+
+Evaluate this food product for this consumer:
 Product Name: "${product.name || 'Unknown'}"
 Brand: "${product.brand || 'Unknown'}"
 Ingredients: "${ingredientsStr}"
 Nutrition: ${JSON.stringify(product.nutrition || {})}
-Consumer Profile: Allergies: [${allergies}], Health Conditions: [${conditions}]
+Consumer Profile:
+- Allergies: [${allergies}]
+- Health Conditions: [${conditions}]
 Safety Verdict: "${verdict}"
 Findings: ${findingsSummary}
 
 Provide:
-1. reason: A concise (2 sentences) explanation of WHY this product received the verdict "${verdict}" specifically for this consumer, highlighting relevant ingredients, allergens, or nutrition metrics.
-2. suggestion: A practical (1-2 sentences) health recommendation (e.g. portion limits, preparation advice, healthy swaps, or safe consumption advice).
+1. reason: In simple everyday layman language (1-2 sentences), explain clearly why this food is or isn't safe for them, pointing out the exact ingredients or sugar/salt levels in plain words.
+2. suggestion: In simple everyday layman language (1-2 friendly sentences), give a practical, clear recommendation on what they should do (e.g. skip it, eat a tiny portion, or enjoy without worry).
+3. alternatives: Give the best 2 to 3 real, specific alternative product names (well-known supermarket food brands or wholesome alternatives like "SunButter Organic Sunflower Butter", "Simple Mills Almond Flour Crackers", "Epigamia Greek Yogurt", "Britannia NutriChoice 5 Grain Biscuits", "Harmless Harvest Coconut Water") that are 100% safe for their allergies: [${allergies}] and conditions: [${conditions}].
+Each alternative MUST include:
+   - "name": The exact, real product name (e.g. "SunButter Sunflower Butter" or "Simple Mills Crackers")
+   - "brand": Brand name (e.g. "SunButter")
+   - "tag": Simple 2-3 word badge in plain English (e.g. "100% Nut Free", "Zero Added Sugar", "Low Salt Choice")
+   - "reason": 1 simple sentence in layman terms explaining why this specific product is much safer and healthier for them
+   - "swapTip": 1 simple, easy tip on how to enjoy or replace it
 
 Respond strictly in valid JSON format:
 {
   "reason": "...",
-  "suggestion": "..."
+  "suggestion": "...",
+  "alternatives": [
+    {
+      "name": "...",
+      "brand": "...",
+      "tag": "...",
+      "reason": "...",
+      "swapTip": "..."
+    }
+  ]
 }`;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json' },
-        }),
-        signal: AbortSignal.timeout(8000),
-      }
-    );
+    const modelsToTry = ['gemini-2.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-2.5-flash'];
 
-    if (res.ok) {
-      const data = await res.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (rawText) {
-        const clean = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
-        return JSON.parse(clean);
+    for (const model of modelsToTry) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: 'application/json' },
+            }),
+            signal: AbortSignal.timeout(25000),
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const clean = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+            return JSON.parse(clean);
+          }
+        } else {
+          console.warn(`[generateAiExplanation] Model ${model} returned ${res.status}`);
+        }
+      } catch (err) {
+        console.warn(`[generateAiExplanation] Error with model ${model}:`, err.message);
       }
     }
   } catch (err) {
@@ -72,22 +102,57 @@ Respond strictly in valid JSON format:
 function getDefaultAiExplanation(evaluated, userProfile) {
   const hasRisk = evaluated.verdict === 'risk';
   const hasCaution = evaluated.verdict === 'caution';
+  const allergies = (userProfile.allergies || []).map((a) => a.replace(/_/g, ' '));
+  const conditions = (userProfile.conditions || []).map((c) => c.replace(/_/g, ' '));
 
   if (hasRisk) {
     return {
-      reason: `One or more declared ingredients or cross-contact warnings conflict with your personal allergy or dietary profile restrictions.`,
-      suggestion: `We advise against consuming this product. Please check the certified safe alternatives suggested below.`,
+      reason: `This food has ingredients or traces that aren't safe for your ${allergies.join(', ') || 'allergy'} profile.`,
+      suggestion: `We recommend skipping this item and picking one of the safe alternatives below instead.`,
+      alternatives: [
+        {
+          name: 'SunButter Sunflower Seed Butter',
+          brand: 'SunButter',
+          tag: '100% Nut Free',
+          reason: 'Made in a certified peanut and tree nut-free facility, perfectly safe for you.',
+          swapTip: 'Spread it on toast or fruit just like peanut butter.',
+        },
+        {
+          name: 'Simple Mills Almond Flour Crackers',
+          brand: 'Simple Mills',
+          tag: 'Gluten-Free Choice',
+          reason: 'Baked with wholesome seed and nut flours with zero artificial additives.',
+          swapTip: 'Great for a crunchy, healthy afternoon snack.',
+        },
+      ],
     };
   }
   if (hasCaution) {
     return {
-      reason: `This food item contains ingredients or nutrient quantities (such as sodium or sugars) that may warrant moderation for your health conditions.`,
-      suggestion: `Consider enjoying in small portions or pairing with lower-sodium, fiber-rich whole foods.`,
+      reason: `This item has ingredients or higher salt and sugar levels that you should go easy on for your ${conditions.join(', ') || 'health'}.`,
+      suggestion: `If you have it, enjoy just a small portion and balance it with water and fresh foods.`,
+      alternatives: [
+        {
+          name: 'Harmless Harvest Organic Coconut Water',
+          brand: 'Harmless Harvest',
+          tag: 'Low Salt & Natural',
+          reason: 'Naturally refreshing with no added sodium or synthetic chemicals.',
+          swapTip: 'A great hydrating swap for soda or sugary juices.',
+        },
+        {
+          name: 'Epigamia Greek Yogurt (Plain)',
+          brand: 'Epigamia',
+          tag: 'Low Sugar & High Protein',
+          reason: 'Packed with real protein and zero refined sugar spikes.',
+          swapTip: 'Top with fresh berries or chia seeds for a delicious dessert.',
+        },
+      ],
     };
   }
   return {
-    reason: `All ingredients and declared nutritional values were verified and show no conflict with your saved profile.`,
-    suggestion: `This product is suitable for your dietary profile. Enjoy as part of a balanced diet.`,
+    reason: `Good news! We checked all ingredients and nutritional facts, and they all look completely clean and safe for you.`,
+    suggestion: `This item fits your dietary preferences nicely. Feel free to enjoy it!`,
+    alternatives: [],
   };
 }
 
@@ -132,6 +197,10 @@ export async function runPipeline({
 
   if (!evaluated.aiExplanation) {
     evaluated.aiExplanation = getDefaultAiExplanation(evaluated, userProfile);
+  }
+
+  if (evaluated.aiExplanation?.alternatives?.length) {
+    evaluated.alternatives = evaluated.aiExplanation.alternatives;
   }
 
   // 4. Persist scan history entry if user is authenticated
@@ -307,40 +376,47 @@ Respond strictly in valid JSON:
   "isUnreadable": false
 }`;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType, data: base64Data } },
+    const modelsToTry = ['gemini-2.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-2.5-flash'];
+
+    for (const model of modelsToTry) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { text: prompt },
+                    { inlineData: { mimeType, data: base64Data } },
+                  ],
+                },
               ],
-            },
-          ],
-          generationConfig: { responseMimeType: 'application/json' },
-        }),
-        signal: AbortSignal.timeout(25000),
+              generationConfig: { responseMimeType: 'application/json' },
+            }),
+            signal: AbortSignal.timeout(25000),
+          }
+        );
+
+        if (!res.ok) {
+          console.warn(`[GeminiVision] Model ${model} returned ${res.status}`);
+          continue;
+        }
+
+        const json = await res.json();
+        const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) continue;
+
+        const clean = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+        return JSON.parse(clean);
+      } catch (err) {
+        console.warn(`[GeminiVision] Error with model ${model}:`, err.message);
       }
-    );
-
-    if (!res.ok) {
-      console.warn(`[GeminiVision] API returned ${res.status}`);
-      return null;
     }
 
-    const json = await res.json();
-    const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) return null;
-
-    try {
-      return JSON.parse(rawText);
-    } catch {
-      return null;
-    }
+    return null;
   },
 
   /**

@@ -28,9 +28,15 @@ export function authenticate(req, res, next) {
     return next();
   }
 
-  // For analyze/search endpoints, allow unauthenticated guest requests with client profile
-  const isAnalyzeOrSearch = req.baseUrl?.includes('/analyze') || req.originalUrl?.includes('/analyze') || req.originalUrl?.includes('/search');
-  if (isAnalyzeOrSearch) {
+  // For analyze/search/alternatives endpoints, allow unauthenticated guest requests with client profile
+  const isPublicOrGuestAllowed =
+    req.baseUrl?.includes('/analyze') ||
+    req.originalUrl?.includes('/analyze') ||
+    req.baseUrl?.includes('/search') ||
+    req.originalUrl?.includes('/search') ||
+    req.baseUrl?.includes('/alternatives') ||
+    req.originalUrl?.includes('/alternatives');
+  if (isPublicOrGuestAllowed) {
     req.userId = null;
     return next();
   }

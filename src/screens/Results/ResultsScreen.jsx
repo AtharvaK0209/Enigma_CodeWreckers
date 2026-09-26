@@ -107,7 +107,22 @@ export default function ResultsScreen({ onNavigate }) {
   // Safer Alternatives determination & API sync
   useEffect(() => {
     let isCurrent = true;
-    if (!activeResult || !activeResult.product || activeResult.verdict === 'safe' || stateParam === 'safe') {
+    if (!activeResult || !activeResult.product) {
+      setAlternativesList([]);
+      return;
+    }
+
+    // 1. Prioritize Gemini AI generated alternatives directly from analysis result
+    if (activeResult.aiExplanation?.alternatives && activeResult.aiExplanation.alternatives.length > 0) {
+      setAlternativesList(activeResult.aiExplanation.alternatives);
+      return;
+    }
+    if (activeResult.alternatives && activeResult.alternatives.length > 0) {
+      setAlternativesList(activeResult.alternatives);
+      return;
+    }
+
+    if (activeResult.verdict === 'safe' || stateParam === 'safe') {
       setAlternativesList([]);
       return;
     }
@@ -283,19 +298,41 @@ export default function ResultsScreen({ onNavigate }) {
               <Sparkles size={16} />
               <span>NutriLens AI Assessment</span>
             </div>
+            <span className="ai-model-tag">Gemini Powered</span>
           </div>
 
           {activeResult.aiExplanation.reason && (
             <div className="ai-section-block">
-              <h4 className="ai-section-title">Why this verdict:</h4>
+              <h4 className="ai-section-title">Why this matters for you:</h4>
               <p className="ai-reason-text">{activeResult.aiExplanation.reason}</p>
             </div>
           )}
 
           {activeResult.aiExplanation.suggestion && (
             <div className="ai-section-block ai-suggestion-block">
-              <h4 className="ai-section-title">Dietary Recommendation:</h4>
+              <h4 className="ai-section-title">Helpful suggestion for you:</h4>
               <p className="ai-suggestion-text">{activeResult.aiExplanation.suggestion}</p>
+            </div>
+          )}
+
+          {activeResult.aiExplanation.alternatives && activeResult.aiExplanation.alternatives.length > 0 && (
+            <div className="ai-section-block ai-alternatives-block">
+              <h4 className="ai-section-title">Best 2-3 Alternative Products for You:</h4>
+              <div className="ai-swaps-grid">
+                {activeResult.aiExplanation.alternatives.map((alt, idx) => (
+                  <div key={idx} className="ai-swap-item">
+                    <div className="ai-swap-header">
+                      <span className="ai-swap-name">{alt.name}</span>
+                      {alt.tag && <span className="ai-swap-badge">{alt.tag}</span>}
+                    </div>
+                    {alt.brand && <span className="ai-swap-brand">{alt.brand}</span>}
+                    <p className="ai-swap-reason">{alt.reason}</p>
+                    {alt.swapTip && (
+                      <span className="ai-swap-tip">💡 Swap Tip: {alt.swapTip}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </Card>
@@ -327,7 +364,7 @@ export default function ResultsScreen({ onNavigate }) {
       </section>
 
       {/* Mission 5: Verified Safer Alternatives ("Better options for your profile") */}
-      {activeResult.verdict !== 'safe' && (
+      {(activeResult.verdict !== 'safe' || (alternativesList && alternativesList.length > 0)) && (
         <section className="alternatives-section">
           <div className="alternatives-header">
             <Sparkles size={18} color="#163A1D" />
@@ -344,6 +381,7 @@ export default function ResultsScreen({ onNavigate }) {
                   image={alt.image}
                   tag={alt.tag || 'Certified Safe Option'}
                   reason={alt.reason}
+                  swapTip={alt.swapTip}
                   nutrition={alt.nutrition}
                 />
               ))}
