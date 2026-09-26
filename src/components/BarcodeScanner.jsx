@@ -7,31 +7,47 @@ import {
   Barcode,
   Image as ImageIcon,
   Keyboard,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
+  Smartphone,
+  Lock,
+  CheckCircle2,
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 import PillButton from './common/PillButton';
 import Card from './common/Card';
 import './BarcodeScanner.css';
 
 /**
- * BarcodeScanner component with robust mobile camera lifecycle management:
+ * BarcodeScanner component with robust mobile camera permission and lifecycle management:
+ * - Explicit Mobile Camera Permission Pop-up Modal ensuring direct user gesture
  * - Prioritizes rear/environment-facing camera explicitly
  * - Guarantees hardware MediaStreamTrack release on unmount / navigation
- * - Implements all 3 mandated fallbacks: "Try again", "Upload a photo instead", "Type barcode manually"
- * 
- * @param {Object} props
- * @param {Function} props.onScanSuccess - Triggered on valid barcode decode
- * @param {Function} [props.onSwitchToPhoto] - Callback to switch to photo OCR tab
- * @param {Function} [props.onError] - Error callback
+ * - Implements 3 mandated fallbacks + native mobile camera capture
  */
 export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError }) {
   const [scannerActive, setScannerActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
   const [manualCode, setManualCode] = useState('');
   const [isManualFocused, setIsManualFocused] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+
+  // Check if camera permission was already granted in this session
+  const [showPermissionModal, setShowPermissionModal] = useState(() => {
+    try {
+      const alreadyGranted = sessionStorage.getItem('nutrilens_camera_granted');
+      return alreadyGranted !== 'true';
+    } catch {
+      return true;
+    }
+  });
+
   const scannerRef = useRef(null);
   const isStartingRef = useRef(false);
   const manualInputRef = useRef(null);
+  const nativeCameraInputRef = useRef(null);
 
   // Quick test barcodes for instant testing & desktop verification
   const sampleBarcodes = [
@@ -98,10 +114,10 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
       };
 
       const config = {
-        fps: 12,
+        fps: 15,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          const edge = Math.min(viewfinderWidth, viewfinderHeight) * 0.72;
-          return { width: Math.round(edge), height: Math.round(edge * 0.7) };
+          const edge = Math.min(viewfinderWidth, viewfinderHeight) * 0.74;
+          return { width: Math.round(edge), height: Math.round(edge * 0.68) };
         },
         aspectRatio: 1.0,
       };
@@ -136,6 +152,10 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
       }
 
       setScannerActive(true);
+      setShowPermissionModal(false);
+      try {
+        sessionStorage.setItem('nutrilens_camera_granted', 'true');
+      } catch {}
     } catch (err) {
       console.warn('[BarcodeScanner] Camera initialization failed:', err);
       let errorType = 'UNAVAILABLE';
@@ -157,13 +177,86 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
     }
   };
 
+  /**
+   * Direct User Gesture handler for Mobile Browsers:
+   * iOS Safari & Chrome Mobile require a direct tap/click to request camera permissions
+   */
+  const handleRequestCameraPermission = async () => {
+    setIsRequesting(true);
+    setCameraError(null);
+
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera API requires a secure connection (HTTPS) or localhost.');
+      }
+
+      // Explicit direct user-gesture permission request
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+      });
+
+      // Stop test stream immediately so Html5Qrcode can bind directly
+      stream.getTracks().forEach((track) => track.stop());
+
+      try {
+        sessionStorage.setItem('nutrilens_camera_granted', 'true');
+      } catch {}
+
+      setShowPermissionModal(false);
+      await startScanner();
+    } catch (err) {
+      console.warn('[BarcodeScanner] Direct permission request error:', err);
+      let errorType = 'DENIED';
+      let message = 'Camera permission was denied in your browser settings.';
+
+      if (err.message?.includes('HTTPS') || err.name === 'SecurityError') {
+        errorType = 'SECURITY';
+        message = 'Mobile browsers require HTTPS or localhost for live optical camera access.';
+      } else if (err.name === 'NotFoundError') {
+        errorType = 'NOT_FOUND';
+        message = 'No optical camera hardware found on this device.';
+      }
+
+      setCameraError({ type: errorType, message });
+      setShowPermissionModal(false);
+      if (onError) onError(err);
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
+  // If already granted in current session, auto-start
   useEffect(() => {
-    startScanner();
+    const alreadyGranted = sessionStorage.getItem('nutrilens_camera_granted') === 'true';
+    if (alreadyGranted) {
+      startScanner();
+    }
 
     return () => {
       stopAndReleaseStreams();
     };
   }, []);
+
+  // Handle native photo capture from mobile camera app
+  const handleNativeCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingPhoto(true);
+    try {
+      const html5QrCode = new Html5Qrcode('nutrilens-qr-reader');
+      const decodedText = await html5QrCode.scanFile(file, true);
+      await stopAndReleaseStreams();
+      onScanSuccess(decodedText);
+    } catch (err) {
+      console.info('[BarcodeScanner] Barcode not found in captured photo, redirecting to photo label OCR:', err);
+      if (onSwitchToPhoto) {
+        onSwitchToPhoto();
+      }
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
@@ -179,6 +272,7 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
   };
 
   const handleFocusManualInput = () => {
+    setShowPermissionModal(false);
     setIsManualFocused(true);
     if (manualInputRef.current) {
       manualInputRef.current.focus();
@@ -188,57 +282,145 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
 
   return (
     <div className="barcode-scanner-component">
-      {/* Viewfinder Window with Aspect Ratio Guardrail */}
-      <div className="scanner-viewfinder-card">
-        <div id="nutrilens-qr-reader" className="scanner-video-feed"></div>
+      {/* Hidden input for native mobile camera fallback */}
+      <input
+        type="file"
+        ref={nativeCameraInputRef}
+        onChange={handleNativeCapture}
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+      />
 
-        {/* Viewfinder Reticle Overlay with Animated Scanning Laser */}
-        {scannerActive && !cameraError && (
-          <div className="reticle-overlay" aria-hidden="true">
-            <div className="corner-bracket top-left"></div>
-            <div className="corner-bracket top-right"></div>
-            <div className="corner-bracket bottom-left"></div>
-            <div className="corner-bracket bottom-right"></div>
+      {/* 1. Mobile Camera Permission Card (Rendered when permission not yet granted) */}
+      {showPermissionModal && !scannerActive && (
+        <Card className="permission-modal-card anim-spring-pop">
+          <div className="permission-modal-glow"></div>
+          <div className="permission-icon-bubble">
+            <Camera size={34} strokeWidth={2.2} />
+          </div>
 
-            <div className="scanning-laser"></div>
-            <div className="reticle-instructions">
-              <Barcode size={15} />
-              <span>Center barcode inside the frame</span>
+          <span className="permission-badge">Camera Access</span>
+          <h3 className="permission-modal-title">Enable Camera to Scan</h3>
+          <p className="permission-modal-desc">
+            NutriLens inspects food barcodes and ingredients in real-time to alert you of allergens and safety risks.
+          </p>
+
+          <div className="permission-trust-bullets">
+            <div className="trust-bullet">
+              <CheckCircle2 size={14} className="trust-icon" />
+              <span>Real-time instant product identification</span>
+            </div>
+            <div className="trust-bullet">
+              <CheckCircle2 size={14} className="trust-icon" />
+              <span>Private and evaluated locally on your device</span>
             </div>
           </div>
-        )}
 
-        {/* Camera Permission / Hardware Failure: Mandated 3 Fallback Actions */}
-        {cameraError && (
+          <div className="permission-modal-actions">
+            <PillButton
+              variant="primary"
+              size="lg"
+              icon={Camera}
+              disabled={isRequesting}
+              onClick={handleRequestCameraPermission}
+              className="permission-cta-btn"
+            >
+              {isRequesting ? 'Requesting Permission...' : 'Allow Camera & Scan'}
+            </PillButton>
+
+            <div className="permission-sub-options">
+              <button
+                type="button"
+                className="permission-text-btn"
+                onClick={() => nativeCameraInputRef.current?.click()}
+              >
+                <Smartphone size={14} />
+                <span>Open Phone Camera (Take Photo)</span>
+              </button>
+
+              <button
+                type="button"
+                className="permission-text-btn"
+                onClick={handleFocusManualInput}
+              >
+                <Keyboard size={14} />
+                <span>Enter Barcode Manually</span>
+              </button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Viewfinder Window with Aspect Ratio Guardrail (Rendered when scanning or error) */}
+      {(!showPermissionModal || scannerActive) && (
+        <div className="scanner-viewfinder-card">
+          <div id="nutrilens-qr-reader" className="scanner-video-feed"></div>
+
+          {/* Viewfinder Reticle Overlay with Animated Scanning Laser */}
+          {scannerActive && !cameraError && (
+            <div className="reticle-overlay" aria-hidden="true">
+              <div className="corner-bracket top-left"></div>
+              <div className="corner-bracket top-right"></div>
+              <div className="corner-bracket bottom-left"></div>
+              <div className="corner-bracket bottom-right"></div>
+
+              <div className="scanning-laser"></div>
+              <div className="reticle-instructions">
+                <Barcode size={15} />
+                <span>Center barcode inside the frame</span>
+              </div>
+            </div>
+          )}
+
+        {/* 2. Camera Permission Denied / Error State */}
+        {cameraError && !showPermissionModal && (
           <div className="camera-error-fallback anim-spring-pop">
             <div className="fallback-icon-wrap">
               <CameraOff size={30} />
             </div>
-            <h4 className="fallback-title">Camera Can't Open</h4>
+            <h4 className="fallback-title">Camera Permission Needed</h4>
             <p className="fallback-message">{cameraError.message}</p>
 
+            {cameraError.type === 'DENIED' && (
+              <div className="browser-permission-hint-box">
+                <p className="hint-headline">📱 How to enable camera in your browser:</p>
+                <ol className="hint-steps-list">
+                  <li>Tap the <strong>lock</strong> or <strong>aA</strong> icon in your browser address bar.</li>
+                  <li>Select <strong>Website Settings</strong> or <strong>Permissions</strong>.</li>
+                  <li>Set <strong>Camera</strong> to <strong>Allow</strong>, then tap Try Again.</li>
+                </ol>
+              </div>
+            )}
+
             <div className="mandated-fallbacks-stack">
-              {/* Fallback 1: Try Again */}
               <PillButton
                 variant="primary"
                 size="sm"
                 icon={RefreshCw}
-                onClick={startScanner}
+                onClick={handleRequestCameraPermission}
               >
-                Try Again
+                Try Camera Again
               </PillButton>
 
-              {/* Fallback 2: Upload a Photo Instead */}
+              <PillButton
+                variant="secondary"
+                size="sm"
+                icon={Smartphone}
+                onClick={() => nativeCameraInputRef.current?.click()}
+              >
+                Take Photo with Phone Camera
+              </PillButton>
+
               <PillButton
                 variant="secondary"
                 size="sm"
                 icon={ImageIcon}
                 onClick={() => onSwitchToPhoto && onSwitchToPhoto()}
               >
-                Upload a Photo Instead
+                Upload Photo Instead
               </PillButton>
 
-              {/* Fallback 3: Type the Barcode Number In */}
               <PillButton
                 variant="outline"
                 size="sm"
@@ -251,29 +433,39 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
           </div>
         )}
 
-        {/* Idle Loading State before camera starts */}
-        {!scannerActive && !cameraError && (
+        {/* Idle Loading State before camera starts (when permission modal closed) */}
+        {!scannerActive && !cameraError && !showPermissionModal && (
           <div className="scanner-idle-placeholder">
             <div className="idle-pulse-ring">
               <Camera size={26} />
             </div>
-            <p className="idle-text">Opening rear lens...</p>
+            <p className="idle-text">Starting camera stream...</p>
           </div>
         )}
       </div>
+      )}
 
-      {/* Camera Toggle Button */}
-      <div className="scanner-controls-bar">
-        {scannerActive ? (
-          <PillButton variant="secondary" size="sm" icon={CameraOff} onClick={stopAndReleaseStreams}>
-            Pause Camera
-          </PillButton>
-        ) : (
-          <PillButton variant="primary" size="sm" icon={Camera} onClick={startScanner}>
-            Launch Camera
-          </PillButton>
-        )}
-      </div>
+      {/* Camera Controls Bar */}
+      {!showPermissionModal && (
+        <div className="scanner-controls-bar">
+          {scannerActive ? (
+            <PillButton variant="secondary" size="sm" icon={CameraOff} onClick={stopAndReleaseStreams}>
+              Pause Camera
+            </PillButton>
+          ) : (
+            <PillButton
+              variant="primary"
+              size="sm"
+              icon={Camera}
+              onClick={() => {
+                setShowPermissionModal(true);
+              }}
+            >
+              Open Camera Scanner
+            </PillButton>
+          )}
+        </div>
+      )}
 
       {/* Manual Barcode Input & Test Presets */}
       <Card className={`manual-barcode-card ${isManualFocused ? 'is-focused-highlight' : ''}`}>

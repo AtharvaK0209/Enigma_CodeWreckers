@@ -8,24 +8,31 @@ import './Navigation.css';
  * - Mobile Floating Black Pill Dock with 4 destinations: Home, Search, Scan, Profile
  * - "Scan" item is visually emphasized (elevated, filled accent ring) per Mission 3 spec
  */
+import { useProfile } from '../context/ProfileContext';
+
 export default function Navigation({ currentRoute, onNavigate }) {
+  const { isAuthenticated, profile } = useProfile();
+  const currentPath = (currentRoute || '/').split('?')[0];
+
   const mainNav = [
-    { id: 'home', label: 'Home', icon: Home, route: '/' },
+    { id: 'home', label: 'Home', icon: Home, route: '/dashboard' },
     { id: 'search', label: 'Search', icon: Search, route: '/search' },
-    { id: 'scan', label: 'Scan', icon: ScanLine, route: '/analyze', isEmphasized: true },
+    { id: 'scan', label: 'Scan', icon: ScanLine, route: '/scan', isEmphasized: true },
     { id: 'profile', label: 'Profile', icon: User, route: '/profile' },
   ];
 
-  const isPublicFlow = currentRoute === '/landing' || currentRoute === '/signin' || currentRoute === '/onboarding';
+  const isLandingView = (currentPath === '/' || currentPath === '/landing') && (!isAuthenticated || !profile.onboardingComplete);
+  const isPublicFlow = isLandingView || currentPath === '/signin' || currentPath === '/onboarding';
 
-  const isHomeActive = currentRoute === '/' || currentRoute === '/dashboard' || currentRoute === '/home';
-  const isScanActive = currentRoute === '/scan' || currentRoute === '/analyze';
-  const isSearchActive = currentRoute === '/search';
-  const isProfileActive = currentRoute === '/profile';
+  const isHomeActive = currentPath === '/' || currentPath === '/dashboard' || currentPath === '/home';
+  const isScanActive = currentPath === '/scan' || currentPath === '/analyze' || currentPath === '/results';
+  const isSearchActive = currentPath === '/search';
+  const isProfileActive = currentPath === '/profile';
 
   if (isPublicFlow) {
     return null; // Public pages have their own focused layout & navigation
   }
+
 
   return (
     <>

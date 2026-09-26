@@ -36,8 +36,10 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const currentPath = (currentRoute || '/').split('?')[0];
+
   const renderCurrentScreen = () => {
-    switch (currentRoute) {
+    switch (currentPath) {
       case '/landing':
         return <LandingScreen onNavigate={navigateTo} />;
       case '/signin':
@@ -68,6 +70,7 @@ function AppContent() {
         return <LandingScreen onNavigate={navigateTo} />;
     }
   };
+
 
   return (
     <div className="app-container">

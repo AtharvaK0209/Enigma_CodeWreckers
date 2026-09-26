@@ -126,7 +126,7 @@ export default function HomeScreen({ onNavigate }) {
             <button
               type="button"
               className="edit-profile-link-btn"
-              onClick={() => onNavigate('/onboarding?step=1')}
+              onClick={() => onNavigate('/profile')}
             >
               <span>Edit Profile</span>
               <ArrowRight size={14} />
@@ -179,7 +179,7 @@ export default function HomeScreen({ onNavigate }) {
                 onNavigate('/scan');
               }}
             >
-              Scan Product →
+              Scan Product
             </PillButton>
           </Card>
 
@@ -208,7 +208,7 @@ export default function HomeScreen({ onNavigate }) {
                 onNavigate('/search');
               }}
             >
-              Search Food →
+              Search Food
             </PillButton>
           </Card>
         </div>

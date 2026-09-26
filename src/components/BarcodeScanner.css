@@ -116,6 +116,148 @@
   font-weight: 600;
 }
 
+/* 1. Mobile Camera Permission Pop-up Modal */
+.camera-permission-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 18, 16, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 20;
+}
+
+.permission-modal-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+.permission-modal-glow {
+  position: absolute;
+  top: -40px;
+  width: 160px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(228, 250, 117, 0.45) 0%, rgba(228, 250, 117, 0) 70%);
+  pointer-events: none;
+}
+
+.permission-icon-bubble {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #E4FA75;
+  color: #153C19;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  box-shadow: 0 8px 20px rgba(228, 250, 117, 0.4);
+}
+
+.permission-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+.permission-modal-title {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.permission-modal-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+.permission-trust-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  background: #F8F6F1;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.trust-bullet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.trust-icon {
+  color: #16A34A;
+  flex-shrink: 0;
+}
+
+.permission-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.permission-cta-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.permission-sub-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.permission-text-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.permission-text-btn:hover {
+  color: var(--text-primary);
+  background: #F0EDE5;
+}
+
 /* Fallback state when camera fails or is blocked */
 .camera-error-fallback {
   display: flex;
@@ -126,7 +268,35 @@
   color: #FFFFFF;
   gap: 8px;
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
+  z-index: 10;
+  background: rgba(20, 20, 19, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.browser-permission-hint-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  width: 100%;
+  text-align: left;
+  margin: 6px 0 10px;
+}
+
+.hint-headline {
+  font-size: 12px;
+  font-weight: 700;
+  color: #FDE68A;
+  margin-bottom: 6px;
+}
+
+.hint-steps-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.45;
 }
 
 .fallback-icon-wrap {
@@ -158,7 +328,7 @@
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  max-width: 260px;
+  max-width: 280px;
 }
 
 .mandated-fallbacks-stack .nutri-pill-btn {

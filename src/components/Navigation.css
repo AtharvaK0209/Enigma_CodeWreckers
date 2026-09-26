@@ -102,31 +102,31 @@
 /* Floating Bottom Nav for Mobile & Tablet (Mission 3) */
 .mobile-bottom-nav {
   position: fixed;
-  bottom: 18px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 0 12px;
   pointer-events: none;
-  padding: 0 16px;
 }
 
 .pill-nav-dock {
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   background: #111111;
   border-radius: 9999px;
-  padding: 8px 18px;
-  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.32), 0 4px 14px rgba(0, 0, 0, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  padding: 6px 10px;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.38), 0 4px 14px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   max-width: 360px;
-  width: calc(100% - 32px);
+  width: calc(100% - 20px);
   justify-content: space-between;
 }
 
@@ -135,15 +135,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.55);
-  padding: 4px 10px;
+  padding: 6px 6px;
   border-radius: 9999px;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-smooth);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   flex: 1;
+  min-width: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .pill-icon-wrap {
@@ -151,17 +155,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
-}
-
-.active-glow-dot {
-  position: absolute;
-  bottom: -4px;
-  width: 4px;
-  height: 4px;
-  background: #E4FA75;
-  border-radius: 50%;
-  box-shadow: 0 0 6px #E4FA75;
+  height: 22px;
+  transition: color 0.15s ease;
 }
 
 .pill-btn-label {
@@ -169,49 +164,84 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.01em;
+  transition: color 0.15s ease;
+  white-space: nowrap;
 }
 
 .pill-nav-btn:hover {
   color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.08);
 }
 
+.pill-nav-btn:active {
+  transform: scale(0.92);
+}
+
+/* Distinct shifting active pill state */
 .pill-nav-btn.active {
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #111111;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  transform: translateY(-2px);
+}
+
+.pill-nav-btn.active:active {
+  transform: translateY(-2px) scale(0.94);
+}
+
+.pill-nav-btn.active .pill-icon-wrap {
+  color: #111111;
+}
+
+.pill-nav-btn.active .pill-btn-label {
+  color: #111111;
+  font-weight: 800;
 }
 
 /* Visually Emphasized Scan button (Mission 3 constraint) */
 .emphasized-scan-btn {
-  margin-top: -14px;
+  margin-top: -16px;
   position: relative;
   flex: 1.15;
 }
 
+.emphasized-scan-btn.active {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 .emphasized-icon-bubble {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: #E4FA75;
   color: #14381B;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(228, 250, 117, 0.4), 0 0 0 3px #111111;
-  transition: transform var(--duration-fast) var(--ease-spring);
+  box-shadow: 0 4px 16px rgba(228, 250, 117, 0.45), 0 0 0 3px #111111;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.emphasized-scan-btn:hover .emphasized-icon-bubble,
-.emphasized-scan-btn:active .emphasized-icon-bubble {
+.emphasized-scan-btn:hover .emphasized-icon-bubble {
   transform: scale(1.08);
 }
 
+.emphasized-scan-btn:active .emphasized-icon-bubble {
+  transform: scale(0.92);
+}
+
 .emphasized-scan-btn.active .emphasized-icon-bubble {
-  box-shadow: 0 0 0 3px #111111, 0 0 12px #E4FA75;
+  transform: scale(1.12);
+  box-shadow: 0 0 0 3px #111111, 0 0 16px #E4FA75, 0 0 0 5px rgba(228, 250, 117, 0.5);
 }
 
 .emphasized-scan-btn .pill-btn-label {
   color: #E4FA75;
   font-weight: 700;
 }
+
 
 @media (min-width: 1024px) {
   .desktop-header {
