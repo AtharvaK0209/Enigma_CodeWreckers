@@ -429,9 +429,295 @@ export async function searchFood(query, userProfile = {}) {
   return matches.map((product) => evaluateProductSafety(product, userProfile));
 }
 
+/**
+ * Fetch user profile from MongoDB API
+ */
+export async function getProfile(token = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}/api/profile`, { headers });
+  if (!res.ok) {
+    throw new Error(`Failed to load profile: ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+/**
+ * Update user profile in MongoDB API
+ */
+export async function updateProfile(profileData, token = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}/api/profile`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(profileData),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to update profile: ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+/**
+ * Fetch scan history from MongoDB API
+ */
+export async function getHistory(token = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}/api/history`, { headers });
+  if (!res.ok) {
+    throw new Error(`Failed to load scan history: ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+/**
+ * Clear scan history in MongoDB API
+ */
+export async function clearHistory(token = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}/api/history`, {
+    method: 'DELETE',
+    headers,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to clear history: ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+/**
+ * Find safer alternative suggestions via /api/alternatives
+ */
+export async function getAlternatives(product, userProfile = {}, options = {}) {
+  try {
+    const res = await fetch(`${API_BASE}/api/alternatives`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product, userProfile, ...options }),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[NutriLens API] Error requesting alternatives:', err.message);
+  }
+
+  return {
+    status: 'no_verified_alternative',
+    hasAlternatives: false,
+    alternatives: [],
+    message: "We couldn't find a verified alternative for this product yet. NutriLens only recommends verified manufacturer products, never automated placeholders.",
+  };
+}
+
+/**
+ * Initialize a 3-question clarification session
+ */
+export async function startClarification() {
+  try {
+    const res = await fetch(`${API_BASE}/api/clarify/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[NutriLens API] Server clarify/start unavailable, using local fallback:', err.message);
+  }
+
+  // Resilient fallback for standalone dev / offline mode
+  const sessionId = `clarify-local-${Date.now()}`;
+  return {
+    sessionId,
+    stepIndex: 0,
+    totalQuestionsAllowed: 3,
+    isTerminal: false,
+    question: {
+      stepIndex: 0,
+      questionId: 'panel_visible',
+      question: 'Can you see an ingredient list or allergen box on the packaging?',
+      type: 'yes_no',
+      hint: 'Look for "Ingredients:" or a highlighted allergen callout on the container.',
+    },
+  };
+}
+
+/**
+ * Submit clarification answer
+ */
+export async function answerClarification(payload) {
+  try {
+    const res = await fetch(`${API_BASE}/api/clarify/answer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[NutriLens API] Server clarify/answer unavailable, using local fallback:', err.message);
+  }
+
+  // Resilient fallback matching exact backend state machine
+  const { sessionId, stepIndex, answer, selectedAllergens, userProfile } = payload;
+  const currentStep = typeof stepIndex === 'number' ? stepIndex : 0;
+
+  if (currentStep === 0) {
+    const isYes = answer === true || answer === 'yes' || answer === 'YES';
+    if (!isYes) {
+      return {
+        sessionId,
+        isTerminal: true,
+        outcome: 'needs_new_photo',
+        message: 'The packaging does not appear to show an ingredient panel. Please retake a photo focusing on the ingredients list or allergen box.',
+        dataQuality: 'low',
+      };
+    }
+    return {
+      sessionId,
+      stepIndex: 1,
+      totalQuestionsAllowed: 3,
+      isTerminal: false,
+      question: {
+        stepIndex: 1,
+        questionId: 'panel_legible',
+        question: 'Is the text clear enough to read any parts of it?',
+        type: 'yes_no',
+        hint: 'Check if you can distinguish printed words without severe glare or blur.',
+      },
+    };
+  }
+
+  if (currentStep === 1) {
+    const isYes = answer === true || answer === 'yes' || answer === 'YES';
+    if (!isYes) {
+      return {
+        sessionId,
+        isTerminal: true,
+        outcome: 'needs_new_photo',
+        message: 'The text is too blurry or damaged to read safely. Please retake a photo in better lighting.',
+        dataQuality: 'low',
+      };
+    }
+    return {
+      sessionId,
+      stepIndex: 2,
+      totalQuestionsAllowed: 3,
+      isTerminal: false,
+      question: {
+        stepIndex: 2,
+        questionId: 'allergens_listed',
+        question: 'Does the packaging display a "Contains:" statement or bold allergen warnings?',
+        type: 'allergen_picker',
+        hint: 'Select all allergens explicitly declared on the physical label.',
+      },
+    };
+  }
+
+  if (currentStep === 2) {
+    const allergens = Array.isArray(selectedAllergens)
+      ? selectedAllergens
+      : Array.isArray(answer)
+      ? answer
+      : [];
+
+    const mockProduct = {
+      id: `clarified-${Date.now()}`,
+      name: 'Package Assessment (User Clarified)',
+      brand: 'Unread Label',
+      ingredients: allergens.length > 0 ? allergens.map((a) => `${a} (confirmed by user)`) : ['Ingredients partially transcribed via user confirmation'],
+      allergensDetected: allergens,
+      primaryAllergenKey: allergens[0] || null,
+      riskTriggers: allergens.reduce((acc, a) => {
+        acc[a] = { trigger: `${a} (declared on label)`, source: 'You confirmed this on physical package' };
+        return acc;
+      }, {}),
+    };
+
+    const finalResult = evaluateProductSafety(mockProduct, userProfile || {}, 'low');
+    finalResult.dataQuality = 'low';
+    finalResult.source = 'user_confirmed';
+    finalResult.confidence = 'user_reported';
+    if (finalResult.findings) {
+      finalResult.findings = finalResult.findings.map(f => ({
+        ...f,
+        evidenceSource: 'user_confirmed',
+        source: f.source || 'You confirmed this on packaging',
+      }));
+    }
+
+    return {
+      sessionId,
+      isTerminal: true,
+      outcome: 'final_result',
+      dataQuality: 'low',
+      source: 'user_confirmed',
+      confidence: 'user_reported',
+      result: finalResult,
+    };
+  }
+
+  return {
+    sessionId,
+    isTerminal: true,
+    outcome: 'concluded',
+    dataQuality: 'low',
+  };
+}
+
+/**
+ * Auth Login (bcrypt + JWT)
+ */
+export async function authLogin(email, password) {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Login failed');
+  }
+  return await res.json();
+}
+
+/**
+ * Auth Signup (bcrypt + JWT)
+ */
+export async function authSignup(data) {
+  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Signup failed');
+  }
+  return await res.json();
+}
+
 export default {
   analyzeBarcode,
   analyzeImage,
   searchFood,
+  getProfile,
+  updateProfile,
+  getHistory,
+  clearHistory,
+  getAlternatives,
+  startClarification,
+  answerClarification,
+  authLogin,
+  authSignup,
   PRODUCT_DATABASE,
 };

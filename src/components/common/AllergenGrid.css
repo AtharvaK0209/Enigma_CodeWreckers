@@ -1,0 +1,119 @@
+/* AllergenGrid.css — Reusable allergen selection grid */
+
+.allergens-tiles-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.onboarding-large-tile {
+  position: relative;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: 1.15rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  user-select: none;
+}
+
+.onboarding-large-tile:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+/* Selected State */
+.onboarding-large-tile.selected-tile {
+  background: #FFF1F2;
+  border-color: #EF4444;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
+}
+
+.tile-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tile-icon-bubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #F3F1EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #171715;
+  transition: all 0.2s ease;
+}
+
+.selected-tile .tile-icon-bubble {
+  background: #FECDD3;
+  color: #991B1B;
+}
+
+.tile-selected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: #EF4444;
+  color: #FFFFFF;
+}
+
+.tile-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tile-main-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: #171715;
+}
+
+.tile-detail-desc {
+  font-size: 0.88rem;
+  color: #6B6862;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Custom Added Tile */
+.custom-added-tile {
+  border-style: dashed;
+}
+
+.custom-tile-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.custom-remove-btn {
+  background: none;
+  border: none;
+  color: #787369;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.custom-remove-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #DC2626;
+}

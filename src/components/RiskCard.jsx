@@ -92,17 +92,29 @@ function formatIngredientNaming(evidence, trigger) {
  * - No internal labels ("severity: high", "trigger: ...", "category: ...")
  * - Real source behind an expandable "See where this info came from" tap
  * - Color AND distinct icon carry accessibility meaning
+ * Mission 8: Evidence source badge ("From product database" / "From your photo" / "You confirmed this")
  */
+const EVIDENCE_SOURCE_MAP = {
+  off: 'From product database',
+  image: 'From your photo',
+  user_confirmed: 'You confirmed this',
+};
+
 export default function RiskCard({
   category,
   severity = 'safe',
   evidence,
   trigger,
   source,
+  evidenceSource,
   headline: customHeadline,
 }) {
   const [isSourceExpanded, setIsSourceExpanded] = useState(false);
   const normalizedSeverity = ['safe', 'caution', 'risk'].includes(severity) ? severity : 'safe';
+
+  // Normalize evidenceSource
+  const cleanEvidenceSource = (evidenceSource || '').toLowerCase().trim();
+  const evidenceBadgeText = EVIDENCE_SOURCE_MAP[cleanEvidenceSource] || null;
 
   const headlineText = customHeadline || getPlainLanguageHeadline(category, trigger, normalizedSeverity);
   const { primarySentence, scientificClarification } = formatIngredientNaming(evidence, trigger);
@@ -152,21 +164,31 @@ export default function RiskCard({
           </div>
         )}
 
-        {/* Source info tucked behind "See where this info came from" tap */}
-        {source && (
+        {/* Source info tucked behind "See where this info came from" tap + Evidence Badge (Mission 8) */}
+        {(source || evidenceBadgeText) && (
           <div className="source-reveal-container">
-            <button
-              type="button"
-              className="source-toggle-btn"
-              onClick={() => setIsSourceExpanded(!isSourceExpanded)}
-              aria-expanded={isSourceExpanded}
-            >
-              <BookOpen size={13} />
-              <span>{isSourceExpanded ? 'Hide info source' : 'See where this info came from'}</span>
-              {isSourceExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
+            <div className="source-actions-flex">
+              {source && (
+                <button
+                  type="button"
+                  className="source-toggle-btn"
+                  onClick={() => setIsSourceExpanded(!isSourceExpanded)}
+                  aria-expanded={isSourceExpanded}
+                >
+                  <BookOpen size={13} />
+                  <span>{isSourceExpanded ? 'Hide info source' : 'See where this info came from'}</span>
+                  {isSourceExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+              )}
 
-            {isSourceExpanded && (
+              {evidenceBadgeText && (
+                <span className={`evidence-source-tag evidence-tag-${cleanEvidenceSource}`}>
+                  {evidenceBadgeText}
+                </span>
+              )}
+            </div>
+
+            {source && isSourceExpanded && (
               <div className="source-expanded-drawer anim-spring-pop">
                 <span className="source-ref-label">Medical Reference & Standard:</span>
                 <p className="source-ref-text">{source}</p>

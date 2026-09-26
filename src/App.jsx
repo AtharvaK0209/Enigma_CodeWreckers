@@ -12,6 +12,7 @@ import ResultsScreen from './screens/Results/ResultsScreen';
 import SearchScreen from './screens/Search/SearchScreen';
 import StyleGuideScreen from './screens/StyleGuide/StyleGuideScreen';
 import DevCardsScreen from './screens/DevCards/DevCardsScreen';
+import ClarifyScreen from './screens/Clarify/ClarifyScreen';
 import './styles/theme.css';
 
 function AppContent() {
@@ -57,6 +58,8 @@ function AppContent() {
         return <ProfileScreen onNavigate={navigateTo} />;
       case '/results':
         return <ResultsScreen onNavigate={navigateTo} />;
+      case '/clarify':
+        return <ClarifyScreen onNavigate={navigateTo} />;
       case '/styleguide':
         return <StyleGuideScreen onNavigate={navigateTo} />;
       case '/dev-cards':
