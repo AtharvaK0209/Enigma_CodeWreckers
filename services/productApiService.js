@@ -109,10 +109,19 @@ export function mapOFFProduct(p, explicitBarcode = null) {
   const imageUrl = images.front || p.image_url || null;
 
   let ingredientsText = null;
+  let ingredients = [];
   if (p.ingredients_text || p.ingredients_text_en) {
     ingredientsText = (p.ingredients_text || p.ingredients_text_en).trim();
-  } else if (Array.isArray(p.ingredients) && p.ingredients.length > 0) {
-    ingredientsText = p.ingredients.map((i) => i.text || i.id?.replace(/^[a-z]{2}:/, '')).filter(Boolean).join(', ');
+  }
+  if (Array.isArray(p.ingredients) && p.ingredients.length > 0) {
+    ingredients = p.ingredients.map((i) => {
+      const name = i.text || i.id?.replace(/^[a-z]{2}:/, '') || 'Ingredient';
+      const quantity = i.percent ? `${i.percent}%` : (i.percent_estimate ? `~${Math.round(i.percent_estimate)}%` : null);
+      return { name, quantity };
+    });
+    if (!ingredientsText) {
+      ingredientsText = ingredients.map((i) => `${i.name}${i.quantity ? ` (${i.quantity})` : ''}`).join(', ');
+    }
   }
 
   const allergens = extractAllergens(p);
@@ -128,6 +137,7 @@ export function mapOFFProduct(p, explicitBarcode = null) {
     imageUrl,
     images,
     ingredientsText,
+    ingredients,
     allergens,
     traces,
     servingSize,
@@ -143,7 +153,7 @@ export const productApiService = {
    * Verified against scanned barcode before returning canonical object.
    */
   async getByBarcode(barcode) {
-    const cleanCode = String(barcode || '').trim();
+    const cleanCode = String(barcode || '').trim().replace(/[\r\n\t]/g, '');
     if (!cleanCode) {
       console.warn('[OFF] Empty or invalid barcode received');
       return {
@@ -166,29 +176,24 @@ export const productApiService = {
       };
     }
 
-    try {
-      const url = `https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(cleanCode)}`;
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'NutriLens/1.0 (safety@nutrilens.app)',
-          Accept: 'application/json',
-        },
-        signal: AbortSignal.timeout(8000),
-      });
+    const endpoints = [
+      `https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(cleanCode)}`,
+      `https://world.openfoodfacts.net/api/v3/product/${encodeURIComponent(cleanCode)}`,
+    ];
 
-      console.log(`[OFF] response status: ${response.status}`);
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'NutriLens/1.0 (safety@nutrilens.app)',
+            Accept: 'application/json',
+          },
+          signal: AbortSignal.timeout(8000),
+        });
 
-      if (response.status === 404) {
-        return {
-          success: false,
-          found: false,
-          error: 'PRODUCT_NOT_FOUND',
-        };
-      }
+        console.log(`[OFF] response status: ${response.status} from ${url}`);
 
-      if (response.ok) {
-        const json = await response.json();
-        if (json.status === 'failure' || json.result?.id === 'product_not_found' || !json.product) {
+        if (response.status === 404) {
           return {
             success: false,
             found: false,
@@ -196,40 +201,52 @@ export const productApiService = {
           };
         }
 
-        const p = json.product;
-        const returnedBarcode = String(p.code || p.id || '').trim();
+        if (response.ok) {
+          const json = await response.json();
+          if (json.status === 'failure' || json.result?.id === 'product_not_found' || !json.product) {
+            return {
+              success: false,
+              found: false,
+              error: 'PRODUCT_NOT_FOUND',
+            };
+          }
 
-        console.log(`[OFF] returned barcode: ${returnedBarcode}`);
-        console.log(`[OFF] returned product: ${p.product_name || p.product_name_en || 'Unknown'}`);
+          const p = json.product;
+          const returnedBarcode = String(p.code || p.id || '').trim();
 
-        // Requirement 5: Compare scanned barcode vs returned barcode
-        const isBarcodeMatch =
-          returnedBarcode === cleanCode ||
-          returnedBarcode.replace(/^0+/, '') === cleanCode.replace(/^0+/, '') ||
-          cleanCode.padStart(13, '0') === returnedBarcode;
+          console.log(`[OFF] returned barcode: ${returnedBarcode}`);
+          console.log(`[OFF] returned product: ${p.product_name || p.product_name_en || 'Unknown'}`);
 
-        if (returnedBarcode && !isBarcodeMatch) {
-          console.warn(`[OFF] Barcode mismatch! Requested: ${cleanCode}, Returned: ${returnedBarcode}`);
+          // Compare scanned barcode vs returned barcode (supporting UPC-A to EAN-13 padding)
+          const isBarcodeMatch =
+            returnedBarcode === cleanCode ||
+            returnedBarcode.replace(/^0+/, '') === cleanCode.replace(/^0+/, '') ||
+            cleanCode.padStart(13, '0') === returnedBarcode ||
+            returnedBarcode.padStart(13, '0') === cleanCode;
+
+          if (returnedBarcode && !isBarcodeMatch) {
+            console.warn(`[OFF] Barcode mismatch! Requested: ${cleanCode}, Returned: ${returnedBarcode}`);
+            return {
+              success: false,
+              found: false,
+              error: 'OFF_RESULT_BARCODE_MISMATCH',
+            };
+          }
+
+          const canonical = mapOFFProduct(p, cleanCode);
+          console.log(`[OFF] image: ${canonical.imageUrl}`);
+          console.log(`[MAP] canonical product: ${canonical.name} (${canonical.barcode})`);
+
+          productCache.set(cleanCode, { data: canonical, timestamp: Date.now() });
           return {
-            success: false,
-            found: false,
-            error: 'OFF_RESULT_BARCODE_MISMATCH',
+            success: true,
+            found: true,
+            product: canonical,
           };
         }
-
-        const canonical = mapOFFProduct(p, cleanCode);
-        console.log(`[OFF] image: ${canonical.imageUrl}`);
-        console.log(`[MAP] canonical product: ${canonical.name} (${canonical.barcode})`);
-
-        productCache.set(cleanCode, { data: canonical, timestamp: Date.now() });
-        return {
-          success: true,
-          found: true,
-          product: canonical,
-        };
+      } catch (err) {
+        console.warn(`[OFF] Live Open Food Facts lookup attempt failed on ${url}: ${err.message}`);
       }
-    } catch (err) {
-      console.warn(`[OFF] Live Open Food Facts lookup failed: ${err.message}`);
     }
 
     return {

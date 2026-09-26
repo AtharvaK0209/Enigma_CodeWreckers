@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import {
   Camera,
   CameraOff,
@@ -20,8 +20,22 @@ import Card from './common/Card';
 import './BarcodeScanner.css';
 
 /**
+ * Standard 1D & 2D formats supported for retail food packaging
+ */
+const SUPPORTED_BARCODE_FORMATS = [
+  Html5QrcodeSupportedFormats.EAN_13,
+  Html5QrcodeSupportedFormats.EAN_8,
+  Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E,
+  Html5QrcodeSupportedFormats.CODE_128,
+  Html5QrcodeSupportedFormats.CODE_39,
+  Html5QrcodeSupportedFormats.CODE_93,
+  Html5QrcodeSupportedFormats.ITF,
+  Html5QrcodeSupportedFormats.QR_CODE,
+];
+
+/**
  * BarcodeScanner component with robust mobile camera permission and lifecycle management:
- * - Explicit Mobile Camera Permission Pop-up Modal ensuring direct user gesture
  * - Prioritizes rear/environment-facing camera explicitly
  * - Guarantees hardware MediaStreamTrack release on unmount / navigation
  * - Implements 3 mandated fallbacks + native mobile camera capture
@@ -35,30 +49,14 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [uploadBarcodeError, setUploadBarcodeError] = useState(null);
 
-  // Check if camera permission was already granted in this session
-  const [showPermissionModal, setShowPermissionModal] = useState(() => {
-    try {
-      const alreadyGranted = sessionStorage.getItem('nutrilens_camera_granted');
-      return alreadyGranted !== 'true';
-    } catch {
-      return true;
-    }
-  });
+  // Directly initialize camera without blocking popup
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
 
   const scannerRef = useRef(null);
   const isStartingRef = useRef(false);
   const manualInputRef = useRef(null);
   const nativeCameraInputRef = useRef(null);
   const barcodeImageInputRef = useRef(null);
-
-  // Quick test barcodes for instant testing & desktop verification
-  const sampleBarcodes = [
-    { code: '3046920022606', label: 'Lindt 85% Dark Chocolate', note: 'Real chocolate on OFF' },
-    { code: '8000500310427', label: 'Nutella Biscuits', note: 'Allergen triggers' },
-    { code: '7622210449283', label: 'Oreo Cookies', note: 'Gluten & soy' },
-    { code: '737628064502', label: 'Thai Peanut Noodles', note: 'Peanuts & sesame' },
-    { code: '0000000000000', label: 'Unregistered Barcode', note: 'Tests not-found flow' },
-  ];
 
   // Stop and release all video stream tracks completely
   const stopAndReleaseStreams = async () => {
@@ -106,11 +104,18 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
     await stopAndReleaseStreams();
 
     try {
-      scannerRef.current = new Html5Qrcode(viewportId);
+      scannerRef.current = new Html5Qrcode(viewportId, {
+        formatsToSupport: SUPPORTED_BARCODE_FORMATS,
+        verbose: false,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+        },
+      });
 
       const qrCodeSuccessCallback = async (decodedText) => {
-        const cleanCode = String(decodedText || '').trim();
+        const cleanCode = String(decodedText || '').trim().replace(/[\r\n\t]/g, '');
         console.log(`[SCAN] detected barcode: ${cleanCode}`);
+        if (!cleanCode) return;
         await stopAndReleaseStreams();
         if (onScanSuccess) {
           onScanSuccess(cleanCode);
@@ -118,10 +123,11 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
       };
 
       const config = {
-        fps: 15,
+        fps: 20,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          const edge = Math.min(viewfinderWidth, viewfinderHeight) * 0.74;
-          return { width: Math.round(edge), height: Math.round(edge * 0.68) };
+          const width = Math.min(Math.round(viewfinderWidth * 0.92), 520);
+          const height = Math.min(Math.round(viewfinderHeight * 0.58), 280);
+          return { width, height };
         },
         aspectRatio: 1.0,
       };
@@ -229,14 +235,14 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
     }
   };
 
-  // If already granted in current session, auto-start
+  // Auto-start scanner on component mount
   useEffect(() => {
-    const alreadyGranted = sessionStorage.getItem('nutrilens_camera_granted') === 'true';
-    if (alreadyGranted) {
+    const timer = setTimeout(() => {
       startScanner();
-    }
+    }, 150);
 
     return () => {
+      clearTimeout(timer);
       stopAndReleaseStreams();
     };
   }, []);
@@ -248,9 +254,14 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
 
     setIsProcessingPhoto(true);
     try {
-      const html5QrCode = new Html5Qrcode('nutrilens-qr-reader');
+      const html5QrCode = new Html5Qrcode('nutrilens-qr-reader', {
+        formatsToSupport: SUPPORTED_BARCODE_FORMATS,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+        },
+      });
       const decodedText = await html5QrCode.scanFile(file, true);
-      const cleanCode = String(decodedText || '').trim();
+      const cleanCode = String(decodedText || '').trim().replace(/[\r\n\t]/g, '');
       console.log(`[SCAN] detected barcode: ${cleanCode}`);
       await stopAndReleaseStreams();
       onScanSuccess(cleanCode);
@@ -272,9 +283,14 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
     setIsProcessingPhoto(true);
     setUploadBarcodeError(null);
     try {
-      const html5QrCode = new Html5Qrcode('nutrilens-qr-reader');
+      const html5QrCode = new Html5Qrcode('nutrilens-qr-reader', {
+        formatsToSupport: SUPPORTED_BARCODE_FORMATS,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+        },
+      });
       const decodedText = await html5QrCode.scanFile(file, true);
-      const cleanCode = String(decodedText || '').trim();
+      const cleanCode = String(decodedText || '').trim().replace(/[\r\n\t]/g, '');
       console.log(`[SCAN] detected barcode: ${cleanCode}`);
       await stopAndReleaseStreams();
       onScanSuccess(cleanCode);
@@ -289,19 +305,12 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
-    const cleanCode = String(manualCode || '').trim();
+    const cleanCode = String(manualCode || '').trim().replace(/[\r\n\t]/g, '');
     if (cleanCode) {
       console.log(`[SCAN] detected barcode: ${cleanCode}`);
       await stopAndReleaseStreams();
       onScanSuccess(cleanCode);
     }
-  };
-
-  const handlePresetClick = async (code) => {
-    const cleanCode = String(code || '').trim();
-    console.log(`[SCAN] detected barcode: ${cleanCode}`);
-    await stopAndReleaseStreams();
-    onScanSuccess(cleanCode);
   };
 
   const handleFocusManualInput = () => {
@@ -565,25 +574,6 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
             Check
           </PillButton>
         </form>
-
-        {/* Quick Testing Barcodes */}
-        <div className="preset-barcodes-block">
-          <span className="presets-title">Quick Test Barcodes:</span>
-          <div className="presets-list">
-            {sampleBarcodes.map((item) => (
-              <button
-                key={item.code}
-                type="button"
-                className="barcode-chip"
-                onClick={() => handlePresetClick(item.code)}
-                title={`${item.note} (${item.code})`}
-              >
-                <Barcode size={13} />
-                <span className="chip-name">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
     </div>
   );

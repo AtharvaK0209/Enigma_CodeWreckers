@@ -16,7 +16,13 @@ export default function OffProductInfo({ product = {} }) {
   const brand = canonical.brand || 'Information unavailable';
   const barcode = canonical.barcode || product.id || 'Information unavailable';
   const imageUrl = canonical.imageUrl || product.image || null;
-  const ingredientsText = canonical.ingredientsText || (canonical.ingredients && canonical.ingredients.length > 0 ? canonical.ingredients.join(', ') : null);
+  const ingredientsText =
+    canonical.ingredientsText ||
+    (canonical.ingredients && canonical.ingredients.length > 0
+      ? canonical.ingredients
+          .map((i) => (typeof i === 'string' ? i : `${i.name || 'Ingredient'}${i.quantity ? ` (${i.quantity})` : ''}`))
+          .join(', ')
+      : null);
   const allergens = canonical.allergens && canonical.allergens.length > 0 ? canonical.allergens.join(', ') : null;
   const traces = canonical.traces && canonical.traces.length > 0 ? canonical.traces.join(', ') : null;
   const servingSize = canonical.servingSize || null;

@@ -4,13 +4,18 @@
  * Strictly communicates with backend API without fake/mock product databases.
  */
 
-const API_BASE = '';
+const API_BASE =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+  window.location.port !== '5001'
+    ? 'http://localhost:5001'
+    : '';
 
 /**
  * Analyze product by barcode
  */
 export async function analyzeBarcode(code, userProfile = {}, token = null) {
-  const cleanCode = String(code || '').trim();
+  const cleanCode = String(code || '').trim().replace(/[\r\n\t]/g, '');
   console.log(`[SCAN] detected barcode: ${cleanCode}`);
 
   if (!cleanCode) {

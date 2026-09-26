@@ -6,6 +6,92 @@ import UserModel from '../models/User.js';
 import { normalizeWithRKB } from '../services/normalizationService.js';
 
 /**
+ * Helper to call Gemini 2.5 Flash for personalized health reason & dietary suggestion
+ */
+async function generateAiExplanation({ product, userProfile, verdict, findings, geminiKey }) {
+  try {
+    const allergies = (userProfile.allergies || []).join(', ') || 'None';
+    const conditions = (userProfile.conditions || []).join(', ') || 'None';
+    const findingsSummary = (findings || []).map((f) => `${f.headline} (${f.evidence})`).join('; ') || 'No critical conflicts';
+
+    const ingredientsStr =
+      product.ingredientsText ||
+      (Array.isArray(product.ingredients)
+        ? product.ingredients
+            .map((i) => (typeof i === 'string' ? i : `${i.name || ''}${i.quantity ? ` (${i.quantity})` : ''}`))
+            .join(', ')
+        : 'Unspecified');
+
+    const prompt = `You are a clinical dietitian and food safety AI for NutriLens.
+Evaluate this food product for a consumer:
+Product Name: "${product.name || 'Unknown'}"
+Brand: "${product.brand || 'Unknown'}"
+Ingredients: "${ingredientsStr}"
+Nutrition: ${JSON.stringify(product.nutrition || {})}
+Consumer Profile: Allergies: [${allergies}], Health Conditions: [${conditions}]
+Safety Verdict: "${verdict}"
+Findings: ${findingsSummary}
+
+Provide:
+1. reason: A concise (2 sentences) explanation of WHY this product received the verdict "${verdict}" specifically for this consumer, highlighting relevant ingredients, allergens, or nutrition metrics.
+2. suggestion: A practical (1-2 sentences) health recommendation (e.g. portion limits, preparation advice, healthy swaps, or safe consumption advice).
+
+Respond strictly in valid JSON format:
+{
+  "reason": "...",
+  "suggestion": "..."
+}`;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+        signal: AbortSignal.timeout(8000),
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        const clean = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+        return JSON.parse(clean);
+      }
+    }
+  } catch (err) {
+    console.warn('[Pipeline] generateAiExplanation error:', err.message);
+  }
+  return null;
+}
+
+function getDefaultAiExplanation(evaluated, userProfile) {
+  const hasRisk = evaluated.verdict === 'risk';
+  const hasCaution = evaluated.verdict === 'caution';
+
+  if (hasRisk) {
+    return {
+      reason: `One or more declared ingredients or cross-contact warnings conflict with your personal allergy or dietary profile restrictions.`,
+      suggestion: `We advise against consuming this product. Please check the certified safe alternatives suggested below.`,
+    };
+  }
+  if (hasCaution) {
+    return {
+      reason: `This food item contains ingredients or nutrient quantities (such as sodium or sugars) that may warrant moderation for your health conditions.`,
+      suggestion: `Consider enjoying in small portions or pairing with lower-sodium, fiber-rich whole foods.`,
+    };
+  }
+  return {
+    reason: `All ingredients and declared nutritional values were verified and show no conflict with your saved profile.`,
+    suggestion: `This product is suitable for your dietary profile. Enjoy as part of a balanced diet.`,
+  };
+}
+
+/**
  * Common pipeline tail that all analysis entry points reach
  */
 export async function runPipeline({
@@ -28,7 +114,27 @@ export async function runPipeline({
   // 2. Evaluate deterministic safety rules
   const evaluated = evaluateProductSafety(fusedProduct, userProfile, fusedProduct.dataQuality);
 
-  // 3. Persist scan history entry if user is authenticated
+  // 3. Generate personalized AI Reason and Suggestion using Gemini 2.5 Flash
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (geminiKey) {
+    try {
+      evaluated.aiExplanation = await generateAiExplanation({
+        product: evaluated.product || rawProduct,
+        userProfile,
+        verdict: evaluated.verdict,
+        findings: evaluated.findings,
+        geminiKey,
+      });
+    } catch (err) {
+      console.warn('[Pipeline] Gemini AI explanation error:', err.message);
+    }
+  }
+
+  if (!evaluated.aiExplanation) {
+    evaluated.aiExplanation = getDefaultAiExplanation(evaluated, userProfile);
+  }
+
+  // 4. Persist scan history entry if user is authenticated
   if (userId && userId !== 'guest') {
     try {
       await historyService.save({
@@ -58,7 +164,7 @@ export const analysisController = {
   async analyzeBarcode(req, res) {
     try {
       const { barcode, userProfile } = req.body;
-      const cleanCode = String(barcode || '').trim();
+      const cleanCode = String(barcode || '').trim().replace(/[\r\n\t]/g, '');
       console.log(`[SCAN] backend received barcode: ${cleanCode}`);
 
       if (!cleanCode) {
@@ -154,14 +260,29 @@ export const analysisController = {
 
     if (!base64Data) return null;
 
-    const prompt = `You are a food label inspection assistant for NutriLens. Inspect this food packaging or label image.
+    const prompt = `You are an expert food label OCR and nutritional analysis AI for NutriLens. Inspect this food packaging or label image.
+Examine the ingredients list and the nutrition facts table carefully.
 Extract:
 1. barcode: The numerical barcode digits if visible on the packaging (or null if not visible).
 2. productName: The name of the food product.
 3. brand: The brand name of the manufacturer/product (or null).
-4. ingredientsText: The complete ingredients list text if visible on the label (or null).
-5. allergens: An array of allergen strings declared or visible (e.g. ["milk", "soybeans"]).
-6. isUnreadable: true ONLY if the image does not depict food packaging or is completely illegible.
+4. ingredientsText: The complete verbatim ingredients list text as printed on the packaging.
+5. ingredients: An array of each individual ingredient with its percentage or quantity if specified on the label, e.g. [{"name": "hazelnut paste", "quantity": "18.5%"}, {"name": "cocoa powder", "quantity": "6.5%"}]. If no specific quantity is stated on the label, set quantity to null.
+6. nutrition: Extract the numeric values per 100g (or per serving) from the nutrition facts table:
+   {
+     "energy": number or null,
+     "carbohydrates": number or null,
+     "sugars": number or null,
+     "fiber": number or null,
+     "protein": number or null,
+     "fat": number or null,
+     "saturatedFat": number or null,
+     "transFat": number or null,
+     "sodium": number or null
+   }
+7. servingSize: The serving size string if visible on the label (or null).
+8. allergens: An array of allergen strings declared or visible on the package (e.g. ["milk", "soybeans", "gluten"]).
+9. isUnreadable: true ONLY if the image does not show food packaging or is completely illegible.
 
 Respond strictly in valid JSON:
 {
@@ -169,6 +290,19 @@ Respond strictly in valid JSON:
   "productName": "string or null",
   "brand": "string or null",
   "ingredientsText": "string or null",
+  "ingredients": [ { "name": "string", "quantity": "string or null" } ],
+  "nutrition": {
+    "energy": null,
+    "carbohydrates": null,
+    "sugars": null,
+    "fiber": null,
+    "protein": null,
+    "fat": null,
+    "saturatedFat": null,
+    "transFat": null,
+    "sodium": null
+  },
+  "servingSize": null,
   "allergens": [],
   "isUnreadable": false
 }`;
@@ -189,7 +323,7 @@ Respond strictly in valid JSON:
           ],
           generationConfig: { responseMimeType: 'application/json' },
         }),
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(25000),
       }
     );
 
@@ -261,10 +395,13 @@ Respond strictly in valid JSON:
 
       // Step A: If barcode was extracted from label, look up in Open Food Facts
       if (visionData?.barcode) {
-        const cleanCode = String(visionData.barcode).trim();
+        const cleanCode = String(visionData.barcode).trim().replace(/[\r\n\t]/g, '');
         const offResult = await productApiService.getByBarcode(cleanCode);
         if (offResult?.found && offResult.product) {
           const canonical = offResult.product;
+          if (Array.isArray(visionData.ingredients) && visionData.ingredients.length > 0) {
+            canonical.ingredients = visionData.ingredients;
+          }
           const normalized = normalizeWithRKB(canonical);
           const result = await runPipeline({
             rawProduct: normalized,
@@ -283,6 +420,9 @@ Respond strictly in valid JSON:
         const matches = await productApiService.searchFood(visionData.productName, 3);
         if (matches && matches.length > 0) {
           const bestMatch = matches[0];
+          if (Array.isArray(visionData.ingredients) && visionData.ingredients.length > 0) {
+            bestMatch.ingredients = visionData.ingredients;
+          }
           const normalized = normalizeWithRKB(bestMatch);
           const result = await runPipeline({
             rawProduct: normalized,
@@ -297,7 +437,7 @@ Respond strictly in valid JSON:
       }
 
       // Step C: If label text was directly extracted by Gemini Vision
-      if (visionData?.productName || visionData?.ingredientsText) {
+      if (visionData?.productName || visionData?.ingredientsText || (Array.isArray(visionData?.ingredients) && visionData.ingredients.length > 0)) {
         const labelProduct = {
           source: 'image',
           barcode: visionData.barcode || null,
@@ -311,19 +451,20 @@ Respond strictly in valid JSON:
             packaging: null,
           },
           ingredientsText: visionData.ingredientsText || '',
+          ingredients: Array.isArray(visionData.ingredients) ? visionData.ingredients : [],
           allergens: Array.isArray(visionData.allergens) ? visionData.allergens : [],
           traces: [],
-          servingSize: null,
+          servingSize: visionData.servingSize || null,
           nutrition: {
-            energy: null,
-            carbohydrates: null,
-            sugars: null,
-            fiber: null,
-            protein: null,
-            fat: null,
-            saturatedFat: null,
-            transFat: null,
-            sodium: null,
+            energy: visionData.nutrition?.energy ?? null,
+            carbohydrates: visionData.nutrition?.carbohydrates ?? null,
+            sugars: visionData.nutrition?.sugars ?? null,
+            fiber: visionData.nutrition?.fiber ?? null,
+            protein: visionData.nutrition?.protein ?? null,
+            fat: visionData.nutrition?.fat ?? null,
+            saturatedFat: visionData.nutrition?.saturatedFat ?? null,
+            transFat: visionData.nutrition?.transFat ?? null,
+            sodium: visionData.nutrition?.sodium ?? null,
           },
         };
 

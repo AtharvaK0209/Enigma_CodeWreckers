@@ -44,21 +44,6 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  // Sample food photos for quick testing & validation
-  const samplePhotos = [
-    {
-      label: 'Chocolate Label Sample',
-      url: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80',
-      note: 'Label image test',
-    },
-    {
-      label: 'Blurry / Glared Label',
-      url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80',
-      note: 'Edge Case 2: Unreadable Image',
-      forceUnreadable: true,
-    },
-  ];
-
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -86,13 +71,6 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
       clearTimeout(p1);
       clearTimeout(p2);
       setLoadingPhase(0);
-    });
-  };
-
-  const handlePresetSelect = (preset) => {
-    setPreviewUrl(preset.url);
-    triggerAnalysis(preset.url, {
-      forceUnreadable: preset.forceUnreadable || false,
     });
   };
 
@@ -215,27 +193,6 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
           </p>
         </div>
       )}
-
-      {/* Instant Testing Presets for Desktops & Quick Verification */}
-      <div className="photo-presets-section">
-        <span className="photo-presets-title">Instant Sample Photos (Click to Analyze):</span>
-        <div className="photo-presets-grid">
-          {samplePhotos.map((preset, index) => (
-            <div
-              key={index}
-              className="photo-preset-card"
-              onClick={() => handlePresetSelect(preset)}
-              title={`${preset.label} — ${preset.note}`}
-            >
-              <img src={preset.url} alt={preset.label} className="preset-thumb" />
-              <div className="preset-meta">
-                <span className="preset-name">{preset.label}</span>
-                <span className="preset-tag">{preset.note}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
