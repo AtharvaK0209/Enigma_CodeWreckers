@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Neutrals */
+  --bg-app: #FAF8F5;
+  --bg-surface: #FFFFFF;
+  --bg-surface-subtle: #F3F1EB;
+  --text-primary: #171715;
+  --text-secondary: #6B6862;
+  --text-tertiary: #9E9B95;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+
+  /* Action Elements */
+  --btn-primary-bg: #111111;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-hover: #262626;
+
+  /* Verdict States - Safe (Vivid Chartreuse / Lime) */
+  --verdict-safe-surface: #E4FA75;
+  --verdict-safe-subtle: #F4FDE5;
+  --verdict-safe-text: #163A1D;
+  --verdict-safe-pill-bg: #14381B;
+  --verdict-safe-pill-text: #E4FA75;
+  --verdict-safe-accent: #22C55E;
+
+  /* Verdict States - Caution (Warm Amber) */
+  --verdict-caution-surface: #FDE68A;
+  --verdict-caution-subtle: #FFFBEB;
+  --verdict-caution-text: #452600;
+  --verdict-caution-pill-bg: #3B2202;
+  --verdict-caution-pill-text: #FDE68A;
+  --verdict-caution-accent: #F59E0B;
+
+  /* Verdict States - Risk (Coral Crimson) */
+  --verdict-risk-surface: #FECDD3;
+  --verdict-risk-subtle: #FFF1F2;
+  --verdict-risk-text: #50100C;
+  --verdict-risk-pill-bg: #400A06;
+  --verdict-risk-pill-text: #FECDD3;
+  --verdict-risk-accent: #EF4444;
+
+  /* Radii */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 10px 30px -4px rgba(24, 23, 21, 0.04), 0 4px 12px -2px rgba(24, 23, 21, 0.02);
+  --shadow-hover: 0 18px 40px -4px rgba(24, 23, 21, 0.08), 0 8px 18px -2px rgba(24, 23, 21, 0.04);
+  --shadow-nav: 0 16px 40px rgba(0, 0, 0, 0.28), 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 180ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* App container layout */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-app);
+  position: relative;
+  padding-bottom: 96px; /* space for bottom floating pill nav */
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    padding-bottom: 40px;
+  }
+}
+
+.main-content {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    padding: 36px 32px;
+  }
+}
+
+/* Base Card Style matching mobile wellness reference */
+.wellness-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--duration-fast) var(--ease-smooth), box-shadow var(--duration-fast) var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.wellness-card:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+/* Primary Black Pill CTA */
+.btn-pill-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  text-decoration: none;
+}
+
+.btn-pill-primary:hover {
+  background-color: var(--btn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.btn-pill-primary:active {
+  transform: translateY(0);
+}
+
+.btn-pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--bg-surface-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  text-decoration: none;
+}
+
+.btn-pill-secondary:hover {
+  background-color: #EBE8E0;
+  transform: translateY(-1px);
+}
+
+/* Status Pill Badges */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Motion Primitives */
+@keyframes springPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  60% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scanLaser {
+  0% { top: 6%; opacity: 0.3; }
+  50% { top: 92%; opacity: 1; }
+  100% { top: 6%; opacity: 0.3; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes shimmerEffect {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.anim-spring-pop {
+  animation: springPop var(--duration-normal) var(--ease-spring) forwards;
+}
+
+.anim-pulse {
+  animation: pulseGlow 2s infinite ease-in-out;
+}

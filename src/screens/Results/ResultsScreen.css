@@ -1,0 +1,394 @@
+.results-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.results-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back-btn {
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+.profile-context-badge {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: #ECE9E1;
+  padding: 6px 14px;
+  border-radius: 9999px;
+}
+
+/* Scaled-up Verdict Card (adapting reference's "Heart rate" card) */
+.hero-verdict-card {
+  border-radius: var(--radius-xl);
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+@media (min-width: 768px) {
+  .hero-verdict-card {
+    padding: 36px 32px;
+  }
+}
+
+.verdict-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.verdict-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.verdict-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.verdict-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 18px;
+  border-radius: 9999px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: fit-content;
+}
+
+.verdict-card-icon-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.verdict-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.product-display-name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .product-display-name {
+    font-size: 32px;
+  }
+}
+
+.product-display-brand {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-top: -2px;
+}
+
+.verdict-summary-text {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* 1. Safe Verdict Variant */
+.verdict-card-safe {
+  background-color: var(--verdict-safe-surface);
+  color: var(--verdict-safe-text);
+  box-shadow: 0 16px 40px -8px rgba(228, 250, 117, 0.5);
+}
+
+.verdict-pill-safe {
+  background: var(--verdict-safe-pill-bg);
+  color: var(--verdict-safe-pill-text);
+}
+
+/* 2. Caution Verdict Variant */
+.verdict-card-caution {
+  background-color: var(--verdict-caution-surface);
+  color: var(--verdict-caution-text);
+  box-shadow: 0 16px 40px -8px rgba(253, 230, 138, 0.5);
+}
+
+.verdict-pill-caution {
+  background: var(--verdict-caution-pill-bg);
+  color: var(--verdict-caution-pill-text);
+}
+
+/* 3. Risk Verdict Variant */
+.verdict-card-risk {
+  background-color: var(--verdict-risk-surface);
+  color: var(--verdict-risk-text);
+  box-shadow: 0 16px 40px -8px rgba(254, 205, 211, 0.6);
+}
+
+.verdict-pill-risk {
+  background: var(--verdict-risk-pill-bg);
+  color: var(--verdict-risk-pill-text);
+}
+
+/* Data Quality Badge (Exact 3-states from Mission 6) */
+.data-quality-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.data-quality-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  width: fit-content;
+  letter-spacing: 0.02em;
+}
+
+.dq-good {
+  background: rgba(21, 60, 25, 0.14);
+  color: #113615;
+}
+
+.dq-verify {
+  background: rgba(69, 38, 0, 0.16);
+  color: #381E00;
+}
+
+.dq-clearer {
+  background: rgba(80, 16, 12, 0.16);
+  color: #380805;
+}
+
+.dq-subtext {
+  font-size: 12px;
+  opacity: 0.85;
+  font-style: italic;
+}
+
+/* Mission 6 Interactive Verifier Bar */
+.dq-verifier-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.verifier-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.verifier-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.verifier-note {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.verifier-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dq-state-btn {
+  background: #FAF8F5;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.dq-state-btn:hover {
+  background: #F0EDE4;
+  color: var(--text-primary);
+}
+
+.dq-state-btn.active {
+  background: #111111;
+  color: #FFFFFF;
+  border-color: #111111;
+}
+
+/* Wholesome Banner (Mission 7) */
+.wholesome-banner {
+  background: #E4FA75;
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #163A1D;
+  box-shadow: 0 8px 24px rgba(228, 250, 117, 0.3);
+}
+
+.wholesome-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(22, 58, 29, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wholesome-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.wholesome-desc {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Findings Stack */
+.findings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.findings-heading {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.findings-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.findings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.no-findings-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 16px;
+}
+
+/* Product Details */
+.product-details-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.details-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ingredients-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ingredient-tag {
+  background: #F4F2EC;
+  color: var(--text-primary);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.nutrition-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.nutri-item {
+  background: #FAF8F5;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nutri-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+}
+
+.nutri-val {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Footer Action */
+.results-action-footer {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.scan-another-cta {
+  width: 100%;
+  max-width: 360px;
+  padding: 15px 28px;
+}

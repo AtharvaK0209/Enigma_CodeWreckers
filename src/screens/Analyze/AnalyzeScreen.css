@@ -1,0 +1,159 @@
+.analyze-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.analyze-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analyze-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.analyze-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.analyze-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .analyze-title {
+    font-size: 34px;
+  }
+}
+
+.profile-indicator-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ECE9E1;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.profile-indicator-pill:hover {
+  background: #E0DDD4;
+}
+
+/* Segmented Pill Control (Design Reference specification) */
+.segmented-pill-control {
+  display: flex;
+  background: #EDEAE2;
+  padding: 5px;
+  border-radius: 9999px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.segment-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.segment-btn.active {
+  background: #FFFFFF;
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Edge Case Error Card (Mission 7) */
+.edge-case-card {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.edge-state-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.edge-icon-bubble {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.not-found-bubble {
+  background: var(--verdict-caution-surface);
+}
+
+.unreadable-bubble {
+  background: var(--verdict-risk-surface);
+}
+
+.generic-bubble {
+  background: #ECE9E1;
+}
+
+.edge-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.edge-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.edge-advice-box {
+  background: #F8F6F0;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.edge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}

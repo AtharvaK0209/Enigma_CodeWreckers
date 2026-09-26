@@ -1,0 +1,347 @@
+.profile-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.profile-hero {
+  position: relative;
+}
+
+.profile-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ECE9E1;
+  color: var(--text-primary);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.profile-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .profile-title {
+    font-size: 36px;
+  }
+}
+
+.profile-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 680px;
+}
+
+.saved-toast {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #111111;
+  color: #FFFFFF;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Name card */
+.name-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.field-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #F3F1EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+}
+
+.field-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.field-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.name-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: #FAF8F5;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.name-input:focus {
+  border-color: #111111;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Presets bar */
+.presets-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.presets-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+
+.btn-preset {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.btn-preset:hover {
+  color: var(--text-primary);
+  background: #F4F2EC;
+  transform: translateY(-1px);
+}
+
+.reset-btn {
+  color: #DC2626;
+}
+
+.reset-btn:hover {
+  background: #FEE2E2;
+}
+
+/* Intake Sections */
+.allergens-section,
+.conditions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.count-pill {
+  background: #ECE9E1;
+  color: var(--text-primary);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.section-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Intake Grid (Allergen cards) */
+.intake-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .intake-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .intake-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+.conditions-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .conditions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Individual Intake Card */
+.intake-card {
+  background: #FAF8F5;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  user-select: none;
+}
+
+.intake-card:hover {
+  transform: translateY(-2px);
+  background: #F3EFE7;
+}
+
+.intake-card.selected {
+  background: var(--verdict-risk-subtle);
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.08);
+}
+
+.intake-card.selected-condition {
+  background: var(--verdict-caution-subtle);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);
+}
+
+.intake-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.intake-icon-bubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.intake-card.selected .intake-icon-bubble {
+  background: #FFFFFF;
+  color: var(--verdict-risk-accent);
+}
+
+.intake-card.selected-condition .intake-icon-bubble {
+  background: #FFFFFF;
+  color: var(--verdict-caution-accent);
+}
+
+.checkbox-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  transition: all var(--duration-fast) var(--ease-spring);
+}
+
+.checkbox-indicator.checked {
+  background: var(--verdict-risk-accent);
+  border-color: var(--verdict-risk-accent);
+  color: #FFFFFF;
+}
+
+.checkbox-indicator.checked-condition {
+  background: var(--verdict-caution-accent);
+  border-color: var(--verdict-caution-accent);
+  color: #FFFFFF;
+}
+
+.check-icon-pop {
+  animation: springPop 200ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.intake-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.intake-label {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.intake-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+/* Action button */
+.profile-action-bar {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.continue-btn {
+  width: 100%;
+  max-width: 380px;
+  padding: 16px 28px;
+  font-size: 16px;
+}
