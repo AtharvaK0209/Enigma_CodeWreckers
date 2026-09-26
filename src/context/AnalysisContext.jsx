@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { analyzeBarcode, analyzeImage } from '../services/api';
 import { useProfile } from './ProfileContext';
 
@@ -6,11 +6,28 @@ const AnalysisContext = createContext(null);
 
 export function AnalysisProvider({ children }) {
   const { profile } = useProfile();
-  const [currentResult, setCurrentResult] = useState(null);
+  const [currentResult, setCurrentResult] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? sessionStorage.getItem('nutrilens_last_result') : null;
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [error, setError] = useState(null);
   const [lastMethod, setLastMethod] = useState(null);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        if (currentResult) {
+          sessionStorage.setItem('nutrilens_last_result', JSON.stringify(currentResult));
+        }
+      }
+    } catch {}
+  }, [currentResult]);
 
   const runBarcodeScan = async (barcode) => {
     setLoading(true);
@@ -52,6 +69,11 @@ export function AnalysisProvider({ children }) {
     setCurrentResult(null);
     setError(null);
     setLastMethod(null);
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('nutrilens_last_result');
+      }
+    } catch {}
   };
 
   return (

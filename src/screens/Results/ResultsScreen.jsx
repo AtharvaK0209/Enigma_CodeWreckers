@@ -16,6 +16,7 @@ import {
 import confetti from 'canvas-confetti';
 import RiskCard from '../../components/RiskCard';
 import AlternativeCard from '../../components/AlternativeCard';
+import OffProductInfo from '../../components/OffProductInfo';
 import PillButton from '../../components/common/PillButton';
 import Card from '../../components/common/Card';
 import { useAnalysis } from '../../context/AnalysisContext';
@@ -51,7 +52,7 @@ const VERIFIED_ALTERNATIVES = {
     },
   ],
 
-  // Flagged for Sodium / Hypertension (Volt Energy Drink)
+  // Flagged for Sodium / Hypertension (High Sodium Beverages)
   'hypertension': [
     {
       name: 'Cold-Pressed Electrolyte Coconut Water',
@@ -62,100 +63,36 @@ const VERIFIED_ALTERNATIVES = {
   ],
 };
 
+function formatNutrient(val, defaultUnit = 'g') {
+  if (val === null || val === undefined || val === '') return 'N/A';
+  if (typeof val === 'object') {
+    if (val.value === null || val.value === undefined) return 'N/A';
+    return `${val.value}${val.unit || defaultUnit}`;
+  }
+  return typeof val === 'number' ? `${val}${defaultUnit}` : String(val);
+}
+
 export default function ResultsScreen({ onNavigate }) {
   const { currentResult, lastMethod } = useAnalysis();
   const { profile } = useProfile();
 
-  // Baseline sample data if navigating directly
-  const defaultSampleResult = {
-    verdict: 'risk',
-    verdictTitle: 'This product may not be safe for you',
-    verdictSummary: 'We detected ingredients that directly conflict with your saved profile restrictions.',
-    dataQuality: 'good',
-    product: {
-      name: 'Hazelnut Cocoa Spread',
-      brand: 'Nutella',
-      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80',
-      ingredients: ['Sugar', 'Palm Oil', 'Hazelnuts (13%)', 'Skimmed Milk Powder (8.7%)', 'Fat-Reduced Cocoa (7.4%)', 'Soy Lecithins', 'Vanillin'],
-      nutrition: { sodium: '42mg', sugars: '56.3g', calories: '539 kcal' },
-      barcode: '8000500310427',
-      primaryAllergenKey: 'tree_nuts',
-    },
-    findings: [
-      {
-        headline: 'Contains tree nuts',
-        category: 'Allergen Alert',
-        severity: 'risk',
-        evidence: 'Direct presence of roasted hazelnuts (13%) and skimmed milk powder detected in formulation.',
-        trigger: 'Hazelnuts (13%) & Skimmed Milk Powder',
-        source: 'FDA Food Allergen Labeling and Consumer Protection Act (FALCPA)',
-      },
-      {
-        headline: 'May contain trace allergens (shared facility)',
-        category: 'Cross-Contact Advisory',
-        severity: 'caution',
-        evidence: 'Packaged on a production line that also handles peanuts and tree nut derivatives.',
-        trigger: 'May contain traces of Peanuts',
-        source: 'Manufacturer Voluntary Facility Advisory',
-      },
-      {
-        headline: 'High added sugar concentration',
-        category: 'Glycemic Concern',
-        severity: 'caution',
-        evidence: 'Contains 56.3g sugar per 100g, which can rapidly elevate blood glucose levels.',
-        trigger: 'Sugar 56.3g / 100g',
-        source: 'American Diabetes Association Dietary Standards',
-      },
-    ],
-  };
-
-  const safeSampleResult = {
-    verdict: 'safe',
-    verdictTitle: 'Looks safe for you',
-    verdictSummary: 'All detected ingredients are clear of your personal restrictions and dietary goals.',
-    dataQuality: 'good',
-    product: {
-      name: 'Organic Whole Grain Rolled Oats',
-      brand: 'Bob\'s Red Mill',
-      image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80',
-      ingredients: ['100% Whole Grain Rolled Oats (Certified Gluten-Free)'],
-      nutrition: { sodium: '0mg', sugars: '1g', calories: '150 kcal' },
-      barcode: '030000010204',
-    },
-    findings: [
-      {
-        headline: 'Clean ingredient match',
-        category: 'Wholesome Formulation',
-        severity: 'safe',
-        evidence: 'Certified gluten-free oats with zero artificial preservatives or hidden allergens.',
-        trigger: '100% Whole Grain Oats',
-        source: 'Gluten-Free Certification Organization (GFCO)',
-      },
-      {
-        headline: 'Low sodium for cardiovascular health',
-        category: 'Cardiovascular Compliance',
-        severity: 'safe',
-        evidence: 'Zero milligrams of sodium; complies naturally with low-sodium blood pressure targets.',
-        trigger: 'Sodium 0mg',
-        source: 'WHO Cardiovascular Baseline Guidelines',
-      },
-    ],
-  };
-
-  // URL query overrides for deterministic testing & screenshot captures
-  const params = new URLSearchParams(window.location.search);
+  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const stateParam = params.get('state');
-  const baseResult = stateParam === 'safe'
-    ? safeSampleResult
-    : (currentResult || defaultSampleResult);
 
-  const activeResult = baseResult;
-  const initialDq = params.get('dq') || activeResult.dataQuality || 'good';
-  const [activeDataQuality, setActiveDataQuality] = useState(initialDq);
+  const activeResult = currentResult;
+
+  const [activeDataQuality, setActiveDataQuality] = useState(() => activeResult?.dataQuality || 'good');
+  const [alternativesList, setAlternativesList] = useState([]);
+
+  useEffect(() => {
+    if (activeResult?.dataQuality) {
+      setActiveDataQuality(activeResult.dataQuality);
+    }
+  }, [activeResult?.dataQuality]);
 
   // Trigger celebration confetti on safe verdict
   useEffect(() => {
-    if (activeResult.verdict === 'safe') {
+    if (activeResult?.verdict === 'safe') {
       try {
         confetti({
           particleCount: 45,
@@ -165,7 +102,88 @@ export default function ResultsScreen({ onNavigate }) {
         });
       } catch (e) {}
     }
-  }, [activeResult.verdict]);
+  }, [activeResult?.verdict]);
+
+  // Safer Alternatives determination & API sync
+  useEffect(() => {
+    let isCurrent = true;
+    if (!activeResult || !activeResult.product || activeResult.verdict === 'safe' || stateParam === 'safe') {
+      setAlternativesList([]);
+      return;
+    }
+    if (params.get('state') === 'flagged_empty' || params.get('alts') === 'none') {
+      setAlternativesList([]);
+      return;
+    }
+
+    async function fetchAlternatives() {
+      try {
+        const data = await getAlternatives(activeResult.product, profile);
+        if (isCurrent && data) {
+          if (data.status === 'no_verified_alternative' || !data.hasAlternatives || !data.alternatives?.length) {
+            const primaryKey =
+              activeResult.product?.primaryAllergenKey ||
+              (activeResult.findings?.find((f) => f.severity === 'risk')?.trigger?.toLowerCase().includes('nut') ? 'tree_nuts' : null);
+            setAlternativesList(VERIFIED_ALTERNATIVES[primaryKey] || []);
+          } else {
+            setAlternativesList(data.alternatives);
+          }
+        }
+      } catch (err) {
+        console.warn('[ResultsScreen] Error fetching alternatives from API:', err);
+      }
+    }
+
+    fetchAlternatives();
+    return () => {
+      isCurrent = false;
+    };
+  }, [activeResult, profile]);
+
+  if (!activeResult || !activeResult.product) {
+    return (
+      <div className="results-screen">
+        <div className="results-top-nav">
+          <PillButton
+            variant="secondary"
+            size="sm"
+            icon={ArrowLeft}
+            onClick={() => onNavigate('/analyze')}
+          >
+            Back to Scanner
+          </PillButton>
+        </div>
+
+        <section className="hero-verdict-surface verdict-surface-caution anim-spring-pop" style={{ textAlign: 'center', padding: '40px 24px' }}>
+          <div className="verdict-icon-bubble" style={{ margin: '0 auto 16px' }}>
+            <AlertTriangle size={32} color="#854D0E" />
+          </div>
+          <h1 className="verdict-main-headline">No Scan Data Available</h1>
+          <p className="verdict-subsentence" style={{ maxWidth: '440px', margin: '8px auto 24px' }}>
+            Please scan a barcode or enter an EAN/UPC code to view verified food safety findings and personalized AI recommendations.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <PillButton
+              variant="primary"
+              size="md"
+              icon={ScanLine}
+              onClick={() => onNavigate('/analyze')}
+            >
+              Scan a Barcode
+            </PillButton>
+            <PillButton
+              variant="secondary"
+              size="md"
+              icon={Search}
+              onClick={() => onNavigate('/search')}
+            >
+              Search by Name
+            </PillButton>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   // Mission 4: Exact Overall Verdict Copy
   const VERDICT_COPY_MAP = {
@@ -192,56 +210,11 @@ export default function ResultsScreen({ onNavigate }) {
   const currentVerdictCopy = VERDICT_COPY_MAP[activeResult.verdict] || VERDICT_COPY_MAP.safe;
   const VerdictIcon = currentVerdictCopy.icon;
 
-  // Mission 4: Exact Data-Quality Badge Copy & Hidden Good State
-  // good -> NO badge shown at all!
-  // partial -> "Some details might be missing — worth checking the label"
-  // low / clearer_photo -> "We couldn't read this clearly — try a clearer photo"
   const showDataQualityBadge = activeDataQuality !== 'good';
-  const dataQualityText = activeDataQuality === 'clearer_photo' || activeDataQuality === 'low'
-    ? "We couldn't read this clearly — try a clearer photo"
-    : "Some details might be missing — worth checking the label";
-
-  // Mission 5: Safer Alternatives determination & API sync
-  const [alternativesList, setAlternativesList] = useState(() => {
-    if (params.get('state') === 'flagged_empty' || params.get('alts') === 'none') {
-      return [];
-    }
-    const primaryKey = activeResult.product?.primaryAllergenKey ||
-      (activeResult.findings?.find(f => f.severity === 'risk')?.trigger?.toLowerCase().includes('nut') ? 'tree_nuts' : null);
-    return (activeResult.verdict !== 'safe' && primaryKey)
-      ? VERIFIED_ALTERNATIVES[primaryKey] || []
-      : [];
-  });
-
-  useEffect(() => {
-    let isCurrent = true;
-    if (activeResult.verdict === 'safe' || stateParam === 'safe') {
-      setAlternativesList([]);
-      return;
-    }
-    if (params.get('state') === 'flagged_empty' || params.get('alts') === 'none') {
-      setAlternativesList([]);
-      return;
-    }
-
-    async function fetchAlternatives() {
-      try {
-        const data = await getAlternatives(activeResult.product, profile);
-        if (isCurrent && data) {
-          if (data.status === 'no_verified_alternative' || !data.hasAlternatives || !data.alternatives?.length) {
-            setAlternativesList([]);
-          } else {
-            setAlternativesList(data.alternatives);
-          }
-        }
-      } catch (err) {
-        console.warn('[ResultsScreen] Error fetching alternatives from API:', err);
-      }
-    }
-
-    fetchAlternatives();
-    return () => { isCurrent = false; };
-  }, [activeResult, profile]);
+  const dataQualityText =
+    activeDataQuality === 'clearer_photo' || activeDataQuality === 'low'
+      ? "We couldn't read this clearly — try a clearer photo"
+      : 'Some details might be missing — worth checking the label';
 
   return (
     <div className="results-screen anim-spring-pop">
@@ -262,7 +235,7 @@ export default function ResultsScreen({ onNavigate }) {
         </div>
       </div>
 
-      {/* Hero Verdict Card — Compact & Guardrailed against Excessive Height on Mobile */}
+      {/* Hero Verdict Card */}
       <section className={`hero-verdict-surface ${currentVerdictCopy.cardClass}`}>
         <div className="verdict-header-row">
           <div className="verdict-icon-bubble">
@@ -272,7 +245,6 @@ export default function ResultsScreen({ onNavigate }) {
         </div>
 
         <div className="verdict-main-text-group">
-          {/* Mission 4 Exact Copy Headline */}
           <h1 className="verdict-main-headline">{currentVerdictCopy.headline}</h1>
 
           <div className="product-identity-line">
@@ -285,7 +257,7 @@ export default function ResultsScreen({ onNavigate }) {
           <p className="verdict-subsentence">{activeResult.verdictSummary}</p>
         </div>
 
-        {/* Mission 4 Data Quality Badge: Hidden on Good, Rendered on Partial/Low */}
+        {/* Data Quality Badge */}
         {showDataQualityBadge && (
           <div className="data-quality-pill-banner anim-spring-pop">
             <Info size={14} className="dq-icon" />
@@ -303,36 +275,31 @@ export default function ResultsScreen({ onNavigate }) {
         )}
       </section>
 
-      {/* Interactive Mission 4 & 6 Badge State Selector (Dev Verification Tool) */}
-      <Card className="dev-dq-toggle-card">
-        <div className="dq-toggle-header">
-          <span className="dq-toggle-label">Mission 4 Data-Quality State Toggle:</span>
-          <span className="dq-toggle-sub">Verified against Mission 4 copy rules</span>
-        </div>
-        <div className="dq-toggle-buttons">
-          <button
-            type="button"
-            className={`dq-chip-btn ${activeDataQuality === 'good' ? 'active' : ''}`}
-            onClick={() => setActiveDataQuality('good')}
-          >
-            <span>Good Quality (No badge shown)</span>
-          </button>
-          <button
-            type="button"
-            className={`dq-chip-btn ${activeDataQuality === 'verify_label' || activeDataQuality === 'partial' ? 'active' : ''}`}
-            onClick={() => setActiveDataQuality('verify_label')}
-          >
-            <span>Partial Data ("Some details might be missing...")</span>
-          </button>
-          <button
-            type="button"
-            className={`dq-chip-btn ${activeDataQuality === 'clearer_photo' || activeDataQuality === 'low' ? 'active' : ''}`}
-            onClick={() => setActiveDataQuality('clearer_photo')}
-          >
-            <span>Low Clarity ("We couldn't read this clearly...")</span>
-          </button>
-        </div>
-      </Card>
+      {/* Gemini AI Reason & Health Suggestion Card */}
+      {activeResult.aiExplanation && (
+        <Card className="ai-reason-suggestion-card anim-spring-pop">
+          <div className="ai-card-badge-row">
+            <div className="ai-badge-bubble">
+              <Sparkles size={16} />
+              <span>NutriLens AI Assessment</span>
+            </div>
+          </div>
+
+          {activeResult.aiExplanation.reason && (
+            <div className="ai-section-block">
+              <h4 className="ai-section-title">Why this verdict:</h4>
+              <p className="ai-reason-text">{activeResult.aiExplanation.reason}</p>
+            </div>
+          )}
+
+          {activeResult.aiExplanation.suggestion && (
+            <div className="ai-section-block ai-suggestion-block">
+              <h4 className="ai-section-title">Dietary Recommendation:</h4>
+              <p className="ai-suggestion-text">{activeResult.aiExplanation.suggestion}</p>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Plain-Language Findings Stack */}
       <section className="plain-findings-section">
@@ -340,7 +307,7 @@ export default function ResultsScreen({ onNavigate }) {
           <h2 className="findings-heading">
             {activeResult.findings?.length === 1 ? '1 finding to know' : `${activeResult.findings?.length || 0} findings to know`}
           </h2>
-          <span className="findings-rules-count">Matched to {profile.allergies.length} saved rules</span>
+          <span className="findings-rules-count">Matched to {profile?.allergies?.length || 0} saved rules</span>
         </div>
 
         <div className="findings-flow-stack">
@@ -400,31 +367,42 @@ export default function ResultsScreen({ onNavigate }) {
         <Card className="product-summary-card">
           <h3 className="ingredients-header">Full Ingredients List</h3>
           <div className="ingredients-cloud">
-            {activeResult.product.ingredients?.map((ing, i) => (
-              <span key={i} className="ingredient-pill">
-                {ing}
-              </span>
-            ))}
+            {activeResult.product.ingredients?.map((ing, i) => {
+              const label =
+                typeof ing === 'string'
+                  ? ing
+                  : `${ing.name || 'Ingredient'}${ing.quantity ? ` (${ing.quantity})` : ''}`;
+              return (
+                <span key={i} className="ingredient-pill">
+                  {label}
+                </span>
+              );
+            })}
           </div>
 
           {activeResult.product.nutrition && (
             <div className="nutrition-metrics-row">
               <div className="metric-box">
                 <span className="m-label">Sodium</span>
-                <span className="m-val">{activeResult.product.nutrition.sodium || 'N/A'}</span>
+                <span className="m-val">{formatNutrient(activeResult.product.nutrition.sodium, 'mg')}</span>
               </div>
               <div className="metric-box">
                 <span className="m-label">Sugars</span>
-                <span className="m-val">{activeResult.product.nutrition.sugars || 'N/A'}</span>
+                <span className="m-val">{formatNutrient(activeResult.product.nutrition.sugars, 'g')}</span>
               </div>
               <div className="metric-box">
                 <span className="m-label">Calories</span>
-                <span className="m-val">{activeResult.product.nutrition.calories || 'N/A'}</span>
+                <span className="m-val">{formatNutrient(activeResult.product.nutrition.calories ?? activeResult.product.nutrition.energy, ' kcal')}</span>
               </div>
             </div>
           )}
         </Card>
       )}
+
+      {/* Mission 6: Dedicated Open Food Facts Product Information Section */}
+      <section className="off-info-wrapper">
+        <OffProductInfo product={activeResult.canonicalProduct || activeResult.product} />
+      </section>
 
       {/* Action Footer */}
       <div className="results-cta-footer">

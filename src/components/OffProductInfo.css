@@ -1,0 +1,233 @@
+/* OffProductInfo.css - Mission 6 Styling */
+.off-product-info-card {
+  margin-top: 24px;
+  padding: 24px;
+  background: #FFFFFF;
+  border-radius: var(--nl-radius-card, 24px);
+  border: 1px solid var(--nl-border-subtle, #E5E7EB);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.off-section-header {
+  margin-bottom: 20px;
+}
+
+.off-badge-row {
+  margin-bottom: 8px;
+}
+
+.off-provenance-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #F3F4F6;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 9999px;
+}
+
+.off-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.off-section-subtitle {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.off-product-hero-layout {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+@media (max-width: 480px) {
+  .off-product-hero-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.off-image-container {
+  width: 100%;
+  height: 140px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.off-product-real-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #FFFFFF;
+}
+
+.off-image-unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #9CA3AF;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  padding: 12px;
+}
+
+.off-identity-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.off-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.off-meta-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.off-meta-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.off-meta-val.code-font {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  color: #374151;
+}
+
+.off-meta-val.is-unavailable,
+.off-text-box p.is-unavailable,
+.off-nutri-val.is-unavailable,
+.off-pill-tag.is-unavailable {
+  color: #9CA3AF;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.off-text-section {
+  margin-bottom: 20px;
+}
+
+.off-sub-heading {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px 0;
+}
+
+.off-text-box {
+  background: #F9FAFB;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid #E5E7EB;
+}
+
+.off-text-box p {
+  margin: 0;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.off-allergens-dual-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+  .off-allergens-dual-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.off-allergen-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.off-pill-tag {
+  display: block;
+  padding: 10px 12px;
+  background: #F9FAFB;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+  font-size: 13px;
+  color: #1F2937;
+  line-height: 1.4;
+}
+
+.off-pill-tag.has-declared {
+  border-left: 3px solid #DC2626;
+  background: #FEF2F2;
+  color: #991B1B;
+}
+
+.off-pill-tag.has-traces {
+  border-left: 3px solid #F59E0B;
+  background: #FFFBEB;
+  color: #92400E;
+}
+
+.off-nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.off-nutri-item {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.off-nutri-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.off-nutri-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}

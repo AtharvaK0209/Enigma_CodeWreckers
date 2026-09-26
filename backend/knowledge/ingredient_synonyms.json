@@ -1,0 +1,139 @@
+[
+  {
+    "canonical": "milk",
+    "terms": [
+      "milk",
+      "milk powder",
+      "milk solids",
+      "buttermilk",
+      "casein",
+      "caseinate",
+      "whey",
+      "whey protein",
+      "lactalbumin",
+      "lactoglobulin"
+    ],
+    "allergen_id": "milk",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "egg",
+    "terms": [
+      "egg",
+      "eggs",
+      "egg white",
+      "egg yolk",
+      "albumen",
+      "ovalbumin",
+      "ovomucoid"
+    ],
+    "allergen_id": "egg",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "peanut",
+    "terms": [
+      "peanut",
+      "peanuts",
+      "groundnut",
+      "ground nuts",
+      "arachis hypogaea",
+      "peanut butter",
+      "peanut flour",
+      "peanut oil"
+    ],
+    "allergen_id": "peanut",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "wheat",
+    "terms": [
+      "wheat",
+      "wheat flour",
+      "whole wheat",
+      "wheat starch",
+      "wheat protein",
+      "wheat gluten"
+    ],
+    "allergen_id": "wheat",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "soy",
+    "terms": [
+      "soy",
+      "soya",
+      "soybean",
+      "soybeans",
+      "soy flour",
+      "soy protein",
+      "soy lecithin"
+    ],
+    "allergen_id": "soy",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "tree_nuts",
+    "terms": [
+      "almond",
+      "almonds",
+      "walnut",
+      "walnuts",
+      "cashew",
+      "cashews",
+      "pistachio",
+      "pistachios",
+      "pecan",
+      "pecans",
+      "hazelnut",
+      "hazelnuts",
+      "macadamia",
+      "brazil nut",
+      "brazil nuts"
+    ],
+    "allergen_id": "tree_nuts",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "fish",
+    "terms": [
+      "fish",
+      "cod",
+      "salmon",
+      "tuna",
+      "sardine",
+      "anchovy",
+      "mackerel",
+      "trout",
+      "bass",
+      "flounder"
+    ],
+    "allergen_id": "fish",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "crustacean_shellfish",
+    "terms": [
+      "crab",
+      "lobster",
+      "shrimp",
+      "prawn",
+      "crayfish",
+      "crustacean"
+    ],
+    "allergen_id": "crustacean_shellfish",
+    "mapping_confidence": "high"
+  },
+  {
+    "canonical": "sesame",
+    "terms": [
+      "sesame",
+      "sesame seed",
+      "sesame seeds",
+      "tahini",
+      "sesame oil"
+    ],
+    "allergen_id": "sesame",
+    "mapping_confidence": "high"
+  }
+]

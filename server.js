@@ -10,11 +10,15 @@ import alternativesRoutes from './routes/alternatives.js';
 import clarifyRoutes from './routes/clarify.js';
 import analysisController from './controllers/analysisController.js';
 import { authenticate } from './middleware/auth.js';
+import { loadRiskKnowledgeBase } from './backend/knowledge/index.js';
 
 dotenv.config();
 
+// Load Risk Knowledge Base at startup (Mission 0 requirement)
+loadRiskKnowledgeBase();
+
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors());

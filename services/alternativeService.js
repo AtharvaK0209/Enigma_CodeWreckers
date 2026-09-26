@@ -173,7 +173,7 @@ Candidates: ${JSON.stringify(survivors.slice(0, 5))}
 Return JSON array with id, rank, tag (short 2-4 word badge), and reason (1 clear sentence why it is better).`;
 
       const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

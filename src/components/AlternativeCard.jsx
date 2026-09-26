@@ -36,13 +36,17 @@ export default function AlternativeCard({
         </div>
       </div>
 
-      {nutrition && (nutrition.sugars || nutrition.sodium) && (
+      {nutrition && (nutrition.sugars !== undefined || nutrition.sodium !== undefined) && (
         <div className="alt-card-nutrition">
-          {nutrition.sodium && (
-            <span className="alt-nutri-item">Sodium: {nutrition.sodium}</span>
+          {nutrition.sodium !== undefined && nutrition.sodium !== null && (
+            <span className="alt-nutri-item">
+              Sodium: {typeof nutrition.sodium === 'object' ? `${nutrition.sodium.value ?? ''}${nutrition.sodium.unit || 'mg'}` : nutrition.sodium}
+            </span>
           )}
-          {nutrition.sugars && (
-            <span className="alt-nutri-item">Sugars: {nutrition.sugars}</span>
+          {nutrition.sugars !== undefined && nutrition.sugars !== null && (
+            <span className="alt-nutri-item">
+              Sugars: {typeof nutrition.sugars === 'object' ? `${nutrition.sugars.value ?? ''}${nutrition.sugars.unit || 'g'}` : nutrition.sugars}
+            </span>
           )}
         </div>
       )}

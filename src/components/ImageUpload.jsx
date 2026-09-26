@@ -44,39 +44,6 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  // Sample food photos for quick testing & validation
-  const samplePhotos = [
-    {
-      label: 'Nutella Ingredients Panel',
-      key: '8000500310427',
-      url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
-      note: 'Tree nuts & milk risk',
-      dataQuality: 'good',
-    },
-    {
-      label: 'Oreo Nutrition Label',
-      key: '7622210449283',
-      url: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80',
-      note: 'Gluten & soy triggers',
-      dataQuality: 'verify_label', // Tests 2nd data quality state!
-    },
-    {
-      label: 'Certified Pure Oats Label',
-      key: '030000010204',
-      url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
-      note: '100% wholesome & safe',
-      dataQuality: 'good',
-    },
-    {
-      label: 'Blurry / Glared Label',
-      key: 'SIMULATE_BLURRY_IMAGE',
-      url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80',
-      note: 'Edge Case 2: Unreadable Image',
-      forceUnreadable: true,
-      dataQuality: 'clearer_photo', // Tests 3rd data quality state!
-    },
-  ];
-
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -104,15 +71,6 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
       clearTimeout(p1);
       clearTimeout(p2);
       setLoadingPhase(0);
-    });
-  };
-
-  const handlePresetSelect = (preset) => {
-    setPreviewUrl(preset.url);
-    triggerAnalysis(preset.url, {
-      productKey: preset.key,
-      forceUnreadable: preset.forceUnreadable || false,
-      dataQuality: preset.dataQuality || 'good',
     });
   };
 
@@ -235,27 +193,6 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
           </p>
         </div>
       )}
-
-      {/* Instant Testing Presets for Desktops & Quick Verification */}
-      <div className="photo-presets-section">
-        <span className="photo-presets-title">Instant Sample Photos (Click to Analyze):</span>
-        <div className="photo-presets-grid">
-          {samplePhotos.map((preset, index) => (
-            <div
-              key={index}
-              className="photo-preset-card"
-              onClick={() => handlePresetSelect(preset)}
-              title={`${preset.label} — ${preset.note}`}
-            >
-              <img src={preset.url} alt={preset.label} className="preset-thumb" />
-              <div className="preset-meta">
-                <span className="preset-name">{preset.label}</span>
-                <span className="preset-tag">{preset.note}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

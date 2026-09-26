@@ -397,3 +397,66 @@
   justify-content: center;
   padding-top: 4px;
 }
+
+/* Gemini AI Reason & Health Suggestion Card */
+.ai-reason-suggestion-card {
+  background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%);
+  border: 1px solid #BBF7D0;
+  border-radius: var(--radius-xl);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(22, 101, 52, 0.05);
+}
+
+.ai-card-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-badge-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #DCFCE7;
+  color: #15803D;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  border: 1px solid #86EFAC;
+}
+
+.ai-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ai-section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #14532D;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ai-reason-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #1F2937;
+}
+
+.ai-suggestion-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #047857;
+  font-weight: 500;
+}

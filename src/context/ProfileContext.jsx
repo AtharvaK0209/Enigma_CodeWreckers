@@ -1,21 +1,33 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { getProfile, updateProfile, getHistory, authLogin } from '../services/api';
+import { getProfile, updateProfile, getHistory, authLogin, authSignup } from '../services/api';
 
 const ProfileContext = createContext(null);
 
 const DEFAULT_PROFILE = {
-  name: 'Yunus',
-  age: '19',
-  allergies: ['peanut', 'tree_nuts'],
+  name: 'User',
+  age: '20',
+  allergies: [],
   customAllergens: [],
-  conditions: ['diabetes'],
-  onboardingComplete: true,
+  conditions: [],
+  onboardingComplete: false,
 };
 
 export function ProfileProvider({ children }) {
   const [profile, setProfileState] = useState(DEFAULT_PROFILE);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Authenticated demo user
-  const [authToken, setAuthToken] = useState(null);
+  const [authToken, setAuthToken] = useState(() => {
+    try {
+      return sessionStorage.getItem('nutrilens_auth_token') || localStorage.getItem('nutrilens_auth_token') || null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return Boolean(sessionStorage.getItem('nutrilens_auth_token') || localStorage.getItem('nutrilens_auth_token'));
+    } catch {
+      return false;
+    }
+  });
   const [recentChecks, setRecentChecks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -89,31 +101,52 @@ export function ProfileProvider({ children }) {
       const res = await authLogin(email, password);
       if (res.token) {
         setAuthToken(res.token);
+        try {
+          sessionStorage.setItem('nutrilens_auth_token', res.token);
+          localStorage.setItem('nutrilens_auth_token', res.token);
+        } catch {}
       }
       if (res.user) {
-        setProfileState((prev) => ({
-          ...prev,
-          ...res.user,
-        }));
+        setProfileState(res.user);
       }
       setIsAuthenticated(true);
       return true;
     } catch (err) {
-      console.warn('[ProfileContext] Sign in API error, proceeding with demo session:', err.message);
+      console.error('[ProfileContext] Sign in API error:', err.message);
+      throw err;
+    }
+  };
+
+  const signUp = async (data) => {
+    try {
+      const res = await authSignup(data);
+      if (res.token) {
+        setAuthToken(res.token);
+        try {
+          sessionStorage.setItem('nutrilens_auth_token', res.token);
+          localStorage.setItem('nutrilens_auth_token', res.token);
+        } catch {}
+      }
+      if (res.user) {
+        setProfileState(res.user);
+      }
       setIsAuthenticated(true);
-      setProfileState((prev) => ({
-        ...prev,
-        email: email || prev.email || 'user@nutrilens.app',
-        name: prev.name || (email ? email.split('@')[0] : 'Yunus'),
-        onboardingComplete: true,
-      }));
       return true;
+    } catch (err) {
+      console.error('[ProfileContext] Sign up error:', err.message);
+      throw err;
     }
   };
 
   const signOut = () => {
     setIsAuthenticated(false);
     setAuthToken(null);
+    try {
+      sessionStorage.removeItem('nutrilens_auth_token');
+      localStorage.removeItem('nutrilens_auth_token');
+    } catch {}
+    setRecentChecks([]);
+    setProfileState(DEFAULT_PROFILE);
   };
 
   const addRecentCheck = (check) => {
@@ -262,9 +295,11 @@ export function ProfileProvider({ children }) {
       value={{
         profile,
         isAuthenticated,
+        authToken,
         recentChecks,
         isLoading,
         signIn,
+        signUp,
         signOut,
         addRecentCheck,
         refreshHistory,

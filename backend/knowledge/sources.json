@@ -1,0 +1,44 @@
+[
+  {
+    "id": "FDA_MAJOR_ALLERGENS",
+    "organization": "U.S. Food and Drug Administration",
+    "title": "Food Allergies: What You Need to Know",
+    "url": "https://www.fda.gov/food/buy-store-serve-safe-food/food-allergies-what-you-need-know"
+  },
+  {
+    "id": "FSSAI_ALLERGEN_LABELING",
+    "organization": "Food Safety and Standards Authority of India",
+    "title": "Compendium / Labelling and Display Regulations",
+    "url": "https://www.fssai.gov.in/upload/uploadfiles/files/Compendium_Labelling_Display_30_06_2022.pdf"
+  },
+  {
+    "id": "WHO_SODIUM",
+    "organization": "World Health Organization",
+    "title": "Sodium reduction",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/sodium-reduction"
+  },
+  {
+    "id": "WHO_HEALTHY_DIET",
+    "organization": "World Health Organization",
+    "title": "Healthy diet",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/healthy-diet"
+  },
+  {
+    "id": "NKF_CKD_NUTRITION",
+    "organization": "National Kidney Foundation",
+    "title": "Nutrition and Kidney Disease",
+    "url": "https://www.kidney.org/"
+  },
+  {
+    "id": "MONASH_PCOS_GUIDELINE",
+    "organization": "Monash University",
+    "title": "International evidence-based guideline for PCOS",
+    "url": "https://www.monash.edu/medicine/mchri/pcos/guideline"
+  },
+  {
+    "id": "AHA_HIGH_CHOLESTEROL",
+    "organization": "American Heart Association",
+    "title": "Prevention and Treatment of High Cholesterol",
+    "url": "https://www.heart.org/en/health-topics/cholesterol/prevention-and-treatment-of-high-cholesterol-hyperlipidemia"
+  }
+]
