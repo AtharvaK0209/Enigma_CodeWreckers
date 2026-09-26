@@ -11,7 +11,7 @@ import { normalizeWithRKB } from '../services/normalizationService.js';
 export async function runPipeline({
   rawProduct,
   userProfile = {},
-  userId = 'demo-user-123',
+  userId = null,
   method = 'barcode',
   forcedDataQuality = null,
   source = 'off',
@@ -28,21 +28,23 @@ export async function runPipeline({
   // 2. Evaluate deterministic safety rules
   const evaluated = evaluateProductSafety(fusedProduct, userProfile, fusedProduct.dataQuality);
 
-  // 3. Persist scan history entry (Mission 3 & 8 requirement)
-  try {
-    await historyService.save({
-      userId,
-      product: evaluated.product,
-      verdict: evaluated.verdict,
-      verdictTitle: evaluated.verdictTitle,
-      verdictSummary: evaluated.verdictSummary,
-      dataQuality: evaluated.dataQuality,
-      findings: evaluated.findings,
-      method,
-    });
-    console.log(`[Pipeline] Scan history successfully saved for user: ${userId}, method: ${method}, product: ${evaluated.product.name}`);
-  } catch (err) {
-    console.error(`[Pipeline] Failed to save scan history: ${err.message}`);
+  // 3. Persist scan history entry if user is authenticated
+  if (userId && userId !== 'guest') {
+    try {
+      await historyService.save({
+        userId,
+        product: evaluated.product,
+        verdict: evaluated.verdict,
+        verdictTitle: evaluated.verdictTitle,
+        verdictSummary: evaluated.verdictSummary,
+        dataQuality: evaluated.dataQuality,
+        findings: evaluated.findings,
+        method,
+      });
+      console.log(`[Pipeline] Scan history saved for user: ${userId}, method: ${method}, product: ${evaluated.product?.name}`);
+    } catch (err) {
+      console.error(`[Pipeline] Failed to save scan history: ${err.message}`);
+    }
   }
 
   return evaluated;
@@ -56,14 +58,20 @@ export const analysisController = {
   async analyzeBarcode(req, res) {
     try {
       const { barcode, userProfile } = req.body;
-      const cleanCode = (barcode || '').trim();
-      const userId = req.userId;
+      const cleanCode = String(barcode || '').trim();
+      console.log(`[SCAN] backend received barcode: ${cleanCode}`);
 
       if (!cleanCode) {
-        return res.status(400).json({ error: 'Barcode parameter is required.' });
+        return res.status(400).json({
+          success: false,
+          found: false,
+          error: 'BARCODE_NOT_RECEIVED',
+          message: "Couldn't read the barcode. Please scan again.",
+        });
       }
 
-      // Mission 1 & 2: Identify user and fetch real Mongo profile
+      // Identify user and fetch real profile
+      const userId = req.userId;
       let profile = null;
       if (userId) {
         const dbUser = await UserModel.findById(userId);
@@ -73,33 +81,45 @@ export const analysisController = {
         profile = userProfile;
       }
       if (!profile) {
-        return res.status(401).json({ error: 'Authentication required. Please sign in to analyze products.' });
+        profile = { name: 'User', allergies: [], conditions: [] };
       }
 
-      // Mission 3: Fetch real canonical product from Open Food Facts
-      const canonicalProduct = await productApiService.getByBarcode(cleanCode);
+      // Fetch real canonical product from Open Food Facts (Requirement 4 & 5)
+      const offResult = await productApiService.getByBarcode(cleanCode);
 
-      // Mission 5: Barcode not found handling with exact required copy
-      if (!canonicalProduct) {
+      if (!offResult || !offResult.found || !offResult.product) {
+        if (offResult?.error === 'OFF_RESULT_BARCODE_MISMATCH') {
+          return res.status(422).json({
+            success: false,
+            found: false,
+            error: 'OFF_RESULT_BARCODE_MISMATCH',
+            message: 'Scanned barcode did not match Open Food Facts catalog entry.',
+          });
+        }
+
         return res.status(404).json({
+          success: false,
+          found: false,
           code: 'BARCODE_NOT_FOUND',
           barcode: cleanCode,
-          error: "We couldn't find this barcode in Open Food Facts.",
+          error: 'Product not found in Open Food Facts.',
         });
       }
 
-      // Mission 7: Normalize canonical OFF product with Risk Knowledge Base (RKB)
+      const canonicalProduct = offResult.product;
+
+      // Normalize canonical OFF product with Risk Knowledge Base (RKB)
       const normalizedProduct = normalizeWithRKB(canonicalProduct);
 
       const result = await runPipeline({
         rawProduct: normalizedProduct,
         userProfile: profile,
-        userId: userId || profile.id || profile._id || 'demo-user-123',
+        userId: userId || profile.id || profile._id,
         method: 'barcode',
         source: 'off',
       });
 
-      // Attach canonical product for Mission 6 "Product Information — Open Food Facts" UI
+      // Attach canonical product for Results screen & OffProductInfo
       result.canonicalProduct = canonicalProduct;
 
       res.json(result);
@@ -111,11 +131,11 @@ export const analysisController = {
 
   /**
    * POST /api/analyze/image
+   * Honest implementation when multimodal Gemini vision is unavailable (Requirement 10)
    */
   async analyzeImage(req, res) {
     try {
-      const { image, userProfile, forceUnreadable, productKey } = req.body;
-      const userId = req.userId || 'demo-user-123';
+      const { image, forceUnreadable } = req.body;
 
       if (!image && !forceUnreadable) {
         return res.status(400).json({ error: 'Image data (base64) is required.' });
@@ -128,26 +148,14 @@ export const analysisController = {
         });
       }
 
-      // Vision / OCR simulation with sample product fallback
-      const sampleKey = productKey || '8000500310427';
-      const baseProduct = await productApiService.getByBarcode(sampleKey);
-
-      let profile = userProfile;
-      if (!profile || Object.keys(profile).length === 0) {
-        const dbUser = await UserModel.findById(userId);
-        if (dbUser) profile = dbUser;
-      }
-
-      const result = await runPipeline({
-        rawProduct: { ...baseProduct, source: 'image' },
-        userProfile: profile,
-        userId,
-        method: 'image',
-        source: 'image',
-        forcedDataQuality: 'partial',
+      // Honest declaration when image-based model is not configured (Requirement 10)
+      return res.status(422).json({
+        success: false,
+        found: false,
+        code: 'IMAGE_IDENTIFICATION_UNAVAILABLE',
+        error: 'Product identification from image is unavailable.',
+        message: 'Product identification from image is unavailable. Please scan the product barcode directly.',
       });
-
-      res.json(result);
     } catch (err) {
       console.error('[analysisController] Image analysis error:', err);
       res.status(500).json({ error: 'Internal image analysis error', details: err.message });
@@ -161,8 +169,8 @@ export const analysisController = {
     try {
       const query = req.query.q || req.body.query || '';
       const { userProfile } = req.body;
-      const userId = req.userId || 'demo-user-123';
-      const cleanQ = (query || '').trim();
+      const userId = req.userId;
+      const cleanQ = String(query || '').trim();
 
       if (!cleanQ) {
         return res.json([]);
@@ -172,25 +180,34 @@ export const analysisController = {
 
       let profile = userProfile;
       if (!profile || Object.keys(profile).length === 0) {
-        const dbUser = await UserModel.findById(userId);
-        if (dbUser) profile = dbUser;
+        if (userId) {
+          const dbUser = await UserModel.findById(userId);
+          if (dbUser) profile = dbUser;
+        }
+      }
+      if (!profile) {
+        profile = { name: 'User', allergies: [], conditions: [] };
       }
 
-      // If at least one match, run top match through pipeline so history write occurs for search
       if (matches.length > 0) {
-        // Save the top searched item into history as required by Mission 3
+        // Save the top searched item into history if authenticated
+        const topNormalized = normalizeWithRKB(matches[0]);
         const topResult = await runPipeline({
-          rawProduct: matches[0],
+          rawProduct: topNormalized,
           userProfile: profile,
           userId,
           method: 'search',
           source: 'off',
         });
+        topResult.canonicalProduct = matches[0];
 
         // Evaluate remaining matches without duplicate history writes
-        const remainingResults = matches.slice(1).map((m) =>
-          evaluateProductSafety(m, profile, 'good')
-        );
+        const remainingResults = matches.slice(1).map((m) => {
+          const norm = normalizeWithRKB(m);
+          const evalRes = evaluateProductSafety(norm, profile, 'good');
+          evalRes.canonicalProduct = m;
+          return evalRes;
+        });
 
         return res.json([topResult, ...remainingResults]);
       }

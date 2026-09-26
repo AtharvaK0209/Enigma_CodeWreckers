@@ -53,11 +53,11 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
 
   // Quick test barcodes for instant testing & desktop verification
   const sampleBarcodes = [
-    { code: '8000500310427', label: 'Nutella Spread', note: 'Allergen triggers' },
+    { code: '3046920022606', label: 'Lindt 85% Dark Chocolate', note: 'Real chocolate on OFF' },
+    { code: '8000500310427', label: 'Nutella Biscuits', note: 'Allergen triggers' },
     { code: '7622210449283', label: 'Oreo Cookies', note: 'Gluten & soy' },
-    { code: '030000010204', label: 'Rolled Oats', note: '100% Wholesome' },
-    { code: '5449000000996', label: 'Volt Energy Drink', note: 'Hypertension warning' },
-    { code: '999999999999', label: 'Unregistered Barcode', note: 'Edge Case 1' },
+    { code: '737628064502', label: 'Thai Peanut Noodles', note: 'Peanuts & sesame' },
+    { code: '0000000000000', label: 'Unregistered Barcode', note: 'Tests not-found flow' },
   ];
 
   // Stop and release all video stream tracks completely
@@ -109,9 +109,11 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
       scannerRef.current = new Html5Qrcode(viewportId);
 
       const qrCodeSuccessCallback = async (decodedText) => {
+        const cleanCode = String(decodedText || '').trim();
+        console.log(`[SCAN] detected barcode: ${cleanCode}`);
         await stopAndReleaseStreams();
         if (onScanSuccess) {
-          onScanSuccess(decodedText);
+          onScanSuccess(cleanCode);
         }
       };
 
@@ -248,8 +250,10 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
     try {
       const html5QrCode = new Html5Qrcode('nutrilens-qr-reader');
       const decodedText = await html5QrCode.scanFile(file, true);
+      const cleanCode = String(decodedText || '').trim();
+      console.log(`[SCAN] detected barcode: ${cleanCode}`);
       await stopAndReleaseStreams();
-      onScanSuccess(decodedText);
+      onScanSuccess(cleanCode);
     } catch (err) {
       console.info('[BarcodeScanner] Barcode not found in captured photo, redirecting to photo label OCR:', err);
       if (onSwitchToPhoto) {
@@ -270,8 +274,10 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
     try {
       const html5QrCode = new Html5Qrcode('nutrilens-qr-reader');
       const decodedText = await html5QrCode.scanFile(file, true);
+      const cleanCode = String(decodedText || '').trim();
+      console.log(`[SCAN] detected barcode: ${cleanCode}`);
       await stopAndReleaseStreams();
-      onScanSuccess(decodedText);
+      onScanSuccess(cleanCode);
     } catch (err) {
       console.warn('[BarcodeScanner] Barcode decode failed from image file:', err);
       setUploadBarcodeError("couldn't read a barcode in that image");
@@ -283,15 +289,19 @@ export default function BarcodeScanner({ onScanSuccess, onSwitchToPhoto, onError
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
-    if (manualCode.trim()) {
+    const cleanCode = String(manualCode || '').trim();
+    if (cleanCode) {
+      console.log(`[SCAN] detected barcode: ${cleanCode}`);
       await stopAndReleaseStreams();
-      onScanSuccess(manualCode.trim());
+      onScanSuccess(cleanCode);
     }
   };
 
   const handlePresetClick = async (code) => {
+    const cleanCode = String(code || '').trim();
+    console.log(`[SCAN] detected barcode: ${cleanCode}`);
     await stopAndReleaseStreams();
-    onScanSuccess(code);
+    onScanSuccess(cleanCode);
   };
 
   const handleFocusManualInput = () => {

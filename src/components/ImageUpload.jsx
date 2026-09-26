@@ -47,33 +47,15 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
   // Sample food photos for quick testing & validation
   const samplePhotos = [
     {
-      label: 'Nutella Ingredients Panel',
-      key: '8000500310427',
-      url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
-      note: 'Tree nuts & milk risk',
-      dataQuality: 'good',
-    },
-    {
-      label: 'Oreo Nutrition Label',
-      key: '7622210449283',
-      url: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80',
-      note: 'Gluten & soy triggers',
-      dataQuality: 'verify_label', // Tests 2nd data quality state!
-    },
-    {
-      label: 'Certified Pure Oats Label',
-      key: '030000010204',
-      url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
-      note: '100% wholesome & safe',
-      dataQuality: 'good',
+      label: 'Chocolate Label Sample',
+      url: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80',
+      note: 'Label image test',
     },
     {
       label: 'Blurry / Glared Label',
-      key: 'SIMULATE_BLURRY_IMAGE',
       url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80',
       note: 'Edge Case 2: Unreadable Image',
       forceUnreadable: true,
-      dataQuality: 'clearer_photo', // Tests 3rd data quality state!
     },
   ];
 
@@ -110,9 +92,7 @@ export default function ImageUpload({ onImageAnalyze, isAnalyzing = false }) {
   const handlePresetSelect = (preset) => {
     setPreviewUrl(preset.url);
     triggerAnalysis(preset.url, {
-      productKey: preset.key,
       forceUnreadable: preset.forceUnreadable || false,
-      dataQuality: preset.dataQuality || 'good',
     });
   };
 

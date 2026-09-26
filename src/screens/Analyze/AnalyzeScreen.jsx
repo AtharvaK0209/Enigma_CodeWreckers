@@ -43,9 +43,17 @@ export default function AnalyzeScreen({ onNavigate }) {
         setEdgeCaseError({
           type: 'barcode_not_found',
           code: err.barcode || code,
-          title: "We couldn't find this barcode in Open Food Facts.",
+          title: "Product not found in Open Food Facts.",
           description: "We couldn't find this barcode in Open Food Facts.",
           actionPrompt: 'Upload or capture a photo of the product packaging or ingredients label instead.',
+        });
+      } else if (err.code === 'BARCODE_NOT_RECEIVED') {
+        setEdgeCaseError({
+          type: 'barcode_not_found',
+          code: code,
+          title: "Couldn't read the barcode. Please scan again.",
+          description: "Couldn't read the barcode. Please scan again.",
+          actionPrompt: 'Hold your camera steady or align the barcode within the frame.',
         });
       } else {
         setEdgeCaseError({

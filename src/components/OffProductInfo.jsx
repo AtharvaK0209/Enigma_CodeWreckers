@@ -25,10 +25,23 @@ export default function OffProductInfo({ product = {} }) {
 
   const formatNutrient = (val, unit = 'g') => {
     if (val === null || val === undefined || val === '') return 'Information unavailable';
+    if (typeof val === 'object' && val !== null) {
+      if (val.value === null || val.value === undefined || val.value === '') return 'Information unavailable';
+      return `${val.value}${val.unit || unit}`;
+    }
     if (typeof val === 'string' && (val.includes('g') || val.includes('mg') || val.includes('kcal'))) {
       return val;
     }
     return `${val}${unit}`;
+  };
+
+  const formatEnergy = (val) => {
+    if (val === null || val === undefined || val === '') return 'Information unavailable';
+    if (typeof val === 'object' && val !== null) {
+      if (val.value === null || val.value === undefined || val.value === '') return 'Information unavailable';
+      return `${val.value} kcal`;
+    }
+    return `${val} kcal`;
   };
 
   return (
@@ -130,7 +143,7 @@ export default function OffProductInfo({ product = {} }) {
           <div className="off-nutri-item">
             <span className="off-nutri-label">Energy</span>
             <span className={`off-nutri-val ${nutrition.energy === null || nutrition.energy === undefined ? 'is-unavailable' : ''}`}>
-              {nutrition.energy !== null && nutrition.energy !== undefined ? `${nutrition.energy} kcal` : 'Information unavailable'}
+              {formatEnergy(nutrition.energy)}
             </span>
           </div>
 

@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'nutrilens_super_secret_jwt_key_2026';
-const DEMO_USER_ID = 'demo-user-123';
 
 /**
  * Authentication middleware
@@ -29,7 +28,14 @@ export function authenticate(req, res, next) {
     return next();
   }
 
-  // If neither Bearer token nor explicit user ID is present on protected route
+  // For analyze/search endpoints, allow unauthenticated guest requests with client profile
+  const isAnalyzeOrSearch = req.baseUrl?.includes('/analyze') || req.originalUrl?.includes('/analyze') || req.originalUrl?.includes('/search');
+  if (isAnalyzeOrSearch) {
+    req.userId = null;
+    return next();
+  }
+
+  // Protected routes (/api/profile, /api/history) strictly require auth
   return res.status(401).json({ error: 'Authentication required. Please provide a valid Bearer token.' });
 }
 

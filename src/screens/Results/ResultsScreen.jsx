@@ -52,7 +52,7 @@ const VERIFIED_ALTERNATIVES = {
     },
   ],
 
-  // Flagged for Sodium / Hypertension (Volt Energy Drink)
+  // Flagged for Sodium / Hypertension (High Sodium Beverages)
   'hypertension': [
     {
       name: 'Cold-Pressed Electrolyte Coconut Water',
@@ -67,91 +67,44 @@ export default function ResultsScreen({ onNavigate }) {
   const { currentResult, lastMethod } = useAnalysis();
   const { profile } = useProfile();
 
-  // Baseline sample data if navigating directly
-  const defaultSampleResult = {
-    verdict: 'risk',
-    verdictTitle: 'This product may not be safe for you',
-    verdictSummary: 'We detected ingredients that directly conflict with your saved profile restrictions.',
-    dataQuality: 'good',
-    product: {
-      name: 'Hazelnut Cocoa Spread',
-      brand: 'Nutella',
-      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80',
-      ingredients: ['Sugar', 'Palm Oil', 'Hazelnuts (13%)', 'Skimmed Milk Powder (8.7%)', 'Fat-Reduced Cocoa (7.4%)', 'Soy Lecithins', 'Vanillin'],
-      nutrition: { sodium: '42mg', sugars: '56.3g', calories: '539 kcal' },
-      barcode: '8000500310427',
-      primaryAllergenKey: 'tree_nuts',
-    },
-    findings: [
-      {
-        headline: 'Contains tree nuts',
-        category: 'Allergen Alert',
-        severity: 'risk',
-        evidence: 'Direct presence of roasted hazelnuts (13%) and skimmed milk powder detected in formulation.',
-        trigger: 'Hazelnuts (13%) & Skimmed Milk Powder',
-        source: 'FDA Food Allergen Labeling and Consumer Protection Act (FALCPA)',
-      },
-      {
-        headline: 'May contain trace allergens (shared facility)',
-        category: 'Cross-Contact Advisory',
-        severity: 'caution',
-        evidence: 'Packaged on a production line that also handles peanuts and tree nut derivatives.',
-        trigger: 'May contain traces of Peanuts',
-        source: 'Manufacturer Voluntary Facility Advisory',
-      },
-      {
-        headline: 'High added sugar concentration',
-        category: 'Glycemic Concern',
-        severity: 'caution',
-        evidence: 'Contains 56.3g sugar per 100g, which can rapidly elevate blood glucose levels.',
-        trigger: 'Sugar 56.3g / 100g',
-        source: 'American Diabetes Association Dietary Standards',
-      },
-    ],
-  };
+  const activeResult = currentResult;
 
-  const safeSampleResult = {
-    verdict: 'safe',
-    verdictTitle: 'Looks safe for you',
-    verdictSummary: 'All detected ingredients are clear of your personal restrictions and dietary goals.',
-    dataQuality: 'good',
-    product: {
-      name: 'Organic Whole Grain Rolled Oats',
-      brand: 'Bob\'s Red Mill',
-      image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80',
-      ingredients: ['100% Whole Grain Rolled Oats (Certified Gluten-Free)'],
-      nutrition: { sodium: '0mg', sugars: '1g', calories: '150 kcal' },
-      barcode: '030000010204',
-    },
-    findings: [
-      {
-        headline: 'Clean ingredient match',
-        category: 'Wholesome Formulation',
-        severity: 'safe',
-        evidence: 'Certified gluten-free oats with zero artificial preservatives or hidden allergens.',
-        trigger: '100% Whole Grain Oats',
-        source: 'Gluten-Free Certification Organization (GFCO)',
-      },
-      {
-        headline: 'Low sodium for cardiovascular health',
-        category: 'Cardiovascular Compliance',
-        severity: 'safe',
-        evidence: 'Zero milligrams of sodium; complies naturally with low-sodium blood pressure targets.',
-        trigger: 'Sodium 0mg',
-        source: 'WHO Cardiovascular Baseline Guidelines',
-      },
-    ],
-  };
+  if (!activeResult || !activeResult.product) {
+    return (
+      <div className="results-container">
+        <div className="results-top-nav">
+          <PillButton
+            variant="secondary"
+            size="sm"
+            icon={ArrowLeft}
+            onClick={() => onNavigate('/analyze')}
+          >
+            Back to Scanner
+          </PillButton>
+        </div>
 
-  // URL query overrides for deterministic testing & screenshot captures
-  const params = new URLSearchParams(window.location.search);
-  const stateParam = params.get('state');
-  const baseResult = stateParam === 'safe'
-    ? safeSampleResult
-    : (currentResult || defaultSampleResult);
+        <section className="hero-verdict-surface verdict-surface-caution anim-spring-pop" style={{ textAlign: 'center', padding: '40px 24px' }}>
+          <div className="verdict-icon-bubble" style={{ margin: '0 auto 16px' }}>
+            <AlertTriangle size={32} color="#854D0E" />
+          </div>
+          <h1 className="verdict-main-headline">No Scan Data Available</h1>
+          <p className="verdict-subsentence" style={{ maxWidth: '440px', margin: '8px auto 24px' }}>
+            Please scan a barcode or enter an EAN/UPC code to view verified food safety findings from Open Food Facts.
+          </p>
+          <PillButton
+            variant="primary"
+            size="md"
+            icon={ScanLine}
+            onClick={() => onNavigate('/analyze')}
+          >
+            Scan a Barcode
+          </PillButton>
+        </section>
+      </div>
+    );
+  }
 
-  const activeResult = baseResult;
-  const initialDq = params.get('dq') || activeResult.dataQuality || 'good';
+  const initialDq = activeResult.dataQuality || 'good';
   const [activeDataQuality, setActiveDataQuality] = useState(initialDq);
 
   // Trigger celebration confetti on safe verdict
