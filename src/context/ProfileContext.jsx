@@ -74,6 +74,7 @@ export function ProfileProvider({ children }) {
       console.warn('[ProfileContext] Error reading auth from localStorage:', e);
     }
     return false; // unauthenticated by default so landing page is shown first
+  });
 
   const [recentChecks, setRecentChecks] = useState(() => {
     try {
