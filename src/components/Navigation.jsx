@@ -21,10 +21,10 @@ export default function Navigation({ currentRoute, onNavigate }) {
     { id: 'profile', label: 'Profile', icon: User, route: '/profile' },
   ];
 
-  const isLandingView = (currentPath === '/' || currentPath === '/landing') && (!isAuthenticated || !profile.onboardingComplete);
+  const isLandingView = currentPath === '/' || currentPath === '/landing';
   const isPublicFlow = isLandingView || currentPath === '/signin' || currentPath === '/onboarding';
 
-  const isHomeActive = currentPath === '/' || currentPath === '/dashboard' || currentPath === '/home';
+  const isHomeActive = currentPath === '/dashboard' || currentPath === '/home';
   const isScanActive = currentPath === '/scan' || currentPath === '/analyze' || currentPath === '/results';
   const isSearchActive = currentPath === '/search';
   const isProfileActive = currentPath === '/profile';

@@ -21,9 +21,11 @@ import {
 } from 'lucide-react';
 import PillButton from '../../components/common/PillButton';
 import Card from '../../components/common/Card';
+import { useProfile } from '../../context/ProfileContext';
 import './LandingScreen.css';
 
 export default function LandingScreen({ onNavigate }) {
+  const { isAuthenticated } = useProfile();
   // Interactive demo profile toggle
   const [demoProfile, setDemoProfile] = useState('peanut');
 
@@ -82,21 +84,34 @@ export default function LandingScreen({ onNavigate }) {
           </div>
 
           <div className="landing-nav-actions">
-            <button
-              type="button"
-              className="landing-signin-btn"
-              onClick={() => onNavigate('/signin')}
-            >
-              Sign In
-            </button>
-            <PillButton
-              variant="primary"
-              size="md"
-              iconRight={ArrowRight}
-              onClick={() => onNavigate('/onboarding')}
-            >
-              Get Started
-            </PillButton>
+            {isAuthenticated ? (
+              <PillButton
+                variant="primary"
+                size="md"
+                iconRight={ArrowRight}
+                onClick={() => onNavigate('/dashboard')}
+              >
+                Go to Dashboard
+              </PillButton>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="landing-signin-btn"
+                  onClick={() => onNavigate('/signin')}
+                >
+                  Sign In
+                </button>
+                <PillButton
+                  variant="primary"
+                  size="md"
+                  iconRight={ArrowRight}
+                  onClick={() => onNavigate('/onboarding')}
+                >
+                  Get Started
+                </PillButton>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -121,21 +136,34 @@ export default function LandingScreen({ onNavigate }) {
           </p>
 
           <div className="hero-cta-group">
-            <PillButton
-              variant="primary"
-              size="lg"
-              iconRight={ArrowRight}
-              onClick={() => onNavigate('/onboarding')}
-            >
-              Get Started →
-            </PillButton>
-            <button
-              type="button"
-              className="hero-secondary-btn"
-              onClick={() => onNavigate('/signin')}
-            >
-              Sign In
-            </button>
+            {isAuthenticated ? (
+              <PillButton
+                variant="primary"
+                size="lg"
+                iconRight={ArrowRight}
+                onClick={() => onNavigate('/dashboard')}
+              >
+                Go to Dashboard
+              </PillButton>
+            ) : (
+              <>
+                <PillButton
+                  variant="primary"
+                  size="lg"
+                  iconRight={ArrowRight}
+                  onClick={() => onNavigate('/onboarding')}
+                >
+                  Get Started
+                </PillButton>
+                <button
+                  type="button"
+                  className="hero-secondary-btn"
+                  onClick={() => onNavigate('/signin')}
+                >
+                  Sign In
+                </button>
+              </>
+            )}
           </div>
 
           <div className="hero-trust-chips">
@@ -435,21 +463,34 @@ export default function LandingScreen({ onNavigate }) {
             Join thousands making informed, stress-free food decisions every day with NutriLens.
           </p>
           <div className="final-cta-buttons">
-            <PillButton
-              variant="primary"
-              size="lg"
-              iconRight={ArrowRight}
-              onClick={() => onNavigate('/onboarding')}
-            >
-              Get Started →
-            </PillButton>
-            <button
-              type="button"
-              className="final-signin-link"
-              onClick={() => onNavigate('/signin')}
-            >
-              Already have a profile? Sign In
-            </button>
+            {isAuthenticated ? (
+              <PillButton
+                variant="primary"
+                size="lg"
+                iconRight={ArrowRight}
+                onClick={() => onNavigate('/dashboard')}
+              >
+                Go to Dashboard
+              </PillButton>
+            ) : (
+              <>
+                <PillButton
+                  variant="primary"
+                  size="lg"
+                  iconRight={ArrowRight}
+                  onClick={() => onNavigate('/onboarding')}
+                >
+                  Get Started
+                </PillButton>
+                <button
+                  type="button"
+                  className="final-signin-link"
+                  onClick={() => onNavigate('/signin')}
+                >
+                  Already have a profile? Sign In
+                </button>
+              </>
+            )}
           </div>
         </div>
       </section>

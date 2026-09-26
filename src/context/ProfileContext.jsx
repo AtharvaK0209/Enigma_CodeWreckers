@@ -73,8 +73,7 @@ export function ProfileProvider({ children }) {
     } catch (e) {
       console.warn('[ProfileContext] Error reading auth from localStorage:', e);
     }
-    return true; // default true for immediate dev exploration, but supports sign in / sign out
-  });
+    return false; // unauthenticated by default so landing page is shown first
 
   const [recentChecks, setRecentChecks] = useState(() => {
     try {

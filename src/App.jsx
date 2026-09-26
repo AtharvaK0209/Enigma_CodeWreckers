@@ -62,9 +62,10 @@ function AppContent() {
       case '/dev-cards':
         return <DevCardsScreen onNavigate={navigateTo} />;
       case '/':
+        return <LandingScreen onNavigate={navigateTo} />;
       default:
-        // If user is authenticated and completed onboarding, show dashboard, otherwise landing
-        if (isAuthenticated && profile.onboardingComplete) {
+        // Default to landing page unless navigating to an explicit dashboard route
+        if (currentPath === '/dashboard' || currentPath === '/home') {
           return <HomeScreen onNavigate={navigateTo} />;
         }
         return <LandingScreen onNavigate={navigateTo} />;

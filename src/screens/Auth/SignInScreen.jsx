@@ -128,7 +128,7 @@ export default function SignInScreen({ onNavigate }) {
                 loading={isLoading}
                 fullWidth
               >
-                Sign In →
+                Sign In
               </PillButton>
             </div>
           </form>
