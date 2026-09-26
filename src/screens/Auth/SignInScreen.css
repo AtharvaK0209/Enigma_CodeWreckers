@@ -1,0 +1,267 @@
+/* Sign In Screen Styles */
+
+.signin-page {
+  min-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1.25rem 3rem 1.25rem;
+  background: var(--color-bg-app, #FAF8F5);
+  color: var(--color-text-primary, #171715);
+}
+
+.signin-header {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.signin-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #6B6862;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+.signin-back-btn:hover {
+  color: #171715;
+}
+
+.signin-brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.signin-brand-badge .brand-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #171715;
+}
+
+.signin-card-container {
+  width: 100%;
+  max-width: 440px;
+  margin: auto 0;
+}
+
+.signin-auth-card {
+  padding: 2.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: #FFFFFF;
+  border-radius: 28px;
+  box-shadow: 0 16px 40px -8px rgba(24, 23, 21, 0.08), 0 4px 12px rgba(24, 23, 21, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.auth-card-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.auth-icon-bubble {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #F3F1EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.auth-heading {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #171715;
+  margin: 0;
+}
+
+.auth-subtext {
+  font-size: 0.95rem;
+  color: #6B6862;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.auth-error-banner {
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #DC2626;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.auth-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.auth-field-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #2D2B26;
+}
+
+.auth-password-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgot-password-link {
+  background: transparent;
+  border: none;
+  font-size: 0.82rem;
+  color: #787369;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+
+.forgot-password-link:hover {
+  color: #171715;
+}
+
+.auth-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-field-glyph {
+  position: absolute;
+  left: 1rem;
+  color: #9E9B95;
+  pointer-events: none;
+}
+
+.auth-text-input {
+  width: 100%;
+  padding: 0.85rem 1rem 0.85rem 2.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #171715;
+  background: #FAF8F5;
+  border: 1.5px solid rgba(0, 0, 0, 0.09);
+  border-radius: 14px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.auth-text-input:focus {
+  outline: none;
+  border-color: #171715;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(23, 23, 21, 0.08);
+}
+
+.auth-submit-group {
+  margin-top: 0.5rem;
+}
+
+/* Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.25rem 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #ECEAE2;
+}
+
+.divider-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9E9B95;
+  letter-spacing: 0.05em;
+}
+
+/* Google Auth Button */
+.btn-google-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #171715;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-google-auth:hover {
+  background: #F8F6F0;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Footer Prompt */
+.auth-footer-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: #6B6862;
+  margin-top: 0.5rem;
+}
+
+.prompt-link {
+  background: transparent;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #171715;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prompt-link:hover {
+  color: #2D5A27;
+}
+
+@media (max-width: 480px) {
+  .signin-auth-card {
+    padding: 1.75rem 1.25rem;
+  }
+}

@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { ProfileProvider } from './context/ProfileContext';
+import { ProfileProvider, useProfile } from './context/ProfileContext';
 import { AnalysisProvider } from './context/AnalysisContext';
 import Navigation from './components/Navigation';
+import LandingScreen from './screens/Landing/LandingScreen';
+import SignInScreen from './screens/Auth/SignInScreen';
+import OnboardingScreen from './screens/Onboarding/OnboardingScreen';
 import HomeScreen from './screens/Home/HomeScreen';
 import ProfileScreen from './screens/Profile/ProfileScreen';
 import AnalyzeScreen from './screens/Analyze/AnalyzeScreen';
 import ResultsScreen from './screens/Results/ResultsScreen';
 import SearchScreen from './screens/Search/SearchScreen';
-import OnboardingScreen from './screens/Onboarding/OnboardingScreen';
 import StyleGuideScreen from './screens/StyleGuide/StyleGuideScreen';
 import DevCardsScreen from './screens/DevCards/DevCardsScreen';
 import './styles/theme.css';
 
-export default function App() {
+function AppContent() {
+  const { isAuthenticated, profile } = useProfile();
   const [currentRoute, setCurrentRoute] = useState(() => {
     return window.location.pathname || '/';
   });
@@ -35,37 +38,55 @@ export default function App() {
 
   const renderCurrentScreen = () => {
     switch (currentRoute) {
-      case '/search':
-        return <SearchScreen onNavigate={navigateTo} />;
+      case '/landing':
+        return <LandingScreen onNavigate={navigateTo} />;
+      case '/signin':
+        return <SignInScreen onNavigate={navigateTo} />;
       case '/onboarding':
         return <OnboardingScreen onNavigate={navigateTo} />;
-      case '/styleguide':
-        return <StyleGuideScreen onNavigate={navigateTo} />;
-      case '/profile':
-        return <ProfileScreen onNavigate={navigateTo} />;
+      case '/dashboard':
+        return <HomeScreen onNavigate={navigateTo} />;
+      case '/scan':
       case '/analyze':
         return <AnalyzeScreen onNavigate={navigateTo} />;
+      case '/search':
+        return <SearchScreen onNavigate={navigateTo} />;
+      case '/profile':
+        return <ProfileScreen onNavigate={navigateTo} />;
       case '/results':
         return <ResultsScreen onNavigate={navigateTo} />;
+      case '/styleguide':
+        return <StyleGuideScreen onNavigate={navigateTo} />;
       case '/dev-cards':
         return <DevCardsScreen onNavigate={navigateTo} />;
       case '/':
       default:
-        return <HomeScreen onNavigate={navigateTo} />;
+        // If user is authenticated and completed onboarding, show dashboard, otherwise landing
+        if (isAuthenticated && profile.onboardingComplete) {
+          return <HomeScreen onNavigate={navigateTo} />;
+        }
+        return <LandingScreen onNavigate={navigateTo} />;
     }
   };
 
   return (
+    <div className="app-container">
+      <Navigation currentRoute={currentRoute} onNavigate={navigateTo} />
+      <main className="main-content">
+        {renderCurrentScreen()}
+      </main>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
     <ProfileProvider>
       <AnalysisProvider>
-        <div className="app-container">
-          <Navigation currentRoute={currentRoute} onNavigate={navigateTo} />
-          <main className="main-content">
-            {renderCurrentScreen()}
-          </main>
-        </div>
+        <AppContent />
       </AnalysisProvider>
     </ProfileProvider>
   );
 }
+
 

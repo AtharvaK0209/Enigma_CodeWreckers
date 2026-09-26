@@ -16,12 +16,23 @@ export default function Navigation({ currentRoute, onNavigate }) {
     { id: 'profile', label: 'Profile', icon: User, route: '/profile' },
   ];
 
+  const isPublicFlow = currentRoute === '/landing' || currentRoute === '/signin' || currentRoute === '/onboarding';
+
+  const isHomeActive = currentRoute === '/' || currentRoute === '/dashboard' || currentRoute === '/home';
+  const isScanActive = currentRoute === '/scan' || currentRoute === '/analyze';
+  const isSearchActive = currentRoute === '/search';
+  const isProfileActive = currentRoute === '/profile';
+
+  if (isPublicFlow) {
+    return null; // Public pages have their own focused layout & navigation
+  }
+
   return (
     <>
       {/* Desktop Header */}
       <header className="desktop-header">
         <div className="header-container">
-          <div className="brand-badge" onClick={() => onNavigate('/')}>
+          <div className="brand-badge" onClick={() => onNavigate('/dashboard')}>
             <div className="brand-dot"></div>
             <span className="brand-title">NutriLens</span>
             <span className="brand-tag">Food Safety</span>
@@ -29,24 +40,24 @@ export default function Navigation({ currentRoute, onNavigate }) {
 
           <nav className="desktop-nav-links">
             <button
-              onClick={() => onNavigate('/')}
-              className={`desktop-nav-item ${currentRoute === '/' || currentRoute === '/home' ? 'active' : ''}`}
+              onClick={() => onNavigate('/dashboard')}
+              className={`desktop-nav-item ${isHomeActive ? 'active' : ''}`}
             >
               <Home size={15} />
-              <span>Home</span>
+              <span>Dashboard</span>
             </button>
 
             <button
               onClick={() => onNavigate('/search')}
-              className={`desktop-nav-item ${currentRoute === '/search' ? 'active' : ''}`}
+              className={`desktop-nav-item ${isSearchActive ? 'active' : ''}`}
             >
               <Search size={15} />
               <span>Search</span>
             </button>
 
             <button
-              onClick={() => onNavigate('/analyze')}
-              className={`desktop-nav-item ${currentRoute === '/analyze' ? 'active' : ''}`}
+              onClick={() => onNavigate('/scan')}
+              className={`desktop-nav-item ${isScanActive ? 'active' : ''}`}
             >
               <ScanLine size={15} />
               <span>Scan Food</span>
@@ -54,35 +65,16 @@ export default function Navigation({ currentRoute, onNavigate }) {
 
             <button
               onClick={() => onNavigate('/profile')}
-              className={`desktop-nav-item ${currentRoute === '/profile' || currentRoute === '/onboarding' ? 'active' : ''}`}
+              className={`desktop-nav-item ${isProfileActive ? 'active' : ''}`}
             >
               <User size={15} />
               <span>Profile</span>
-            </button>
-
-            {/* Dev helper links */}
-            <button
-              onClick={() => onNavigate('/styleguide')}
-              className={`desktop-nav-item dev-nav-link ${currentRoute === '/styleguide' ? 'active' : ''}`}
-              title="Design Tokens & Styleguide"
-            >
-              <Palette size={14} />
-              <span>Tokens</span>
-            </button>
-
-            <button
-              onClick={() => onNavigate('/dev-cards')}
-              className={`desktop-nav-item dev-nav-link ${currentRoute === '/dev-cards' ? 'active' : ''}`}
-              title="RiskCard Component Gallery"
-            >
-              <Sparkles size={14} />
-              <span>Cards</span>
             </button>
           </nav>
 
           <button
             className="btn-pill-primary desktop-cta"
-            onClick={() => onNavigate('/analyze')}
+            onClick={() => onNavigate('/scan')}
           >
             <ScanLine size={16} />
             <span>Scan Product</span>
@@ -95,9 +87,11 @@ export default function Navigation({ currentRoute, onNavigate }) {
         <div className="pill-nav-dock">
           {mainNav.map((item) => {
             const Icon = item.icon;
-            const isActive = currentRoute === item.route ||
-              (item.route === '/' && currentRoute === '/home') ||
-              (item.route === '/profile' && currentRoute === '/onboarding');
+            const isActive =
+              (item.id === 'home' && isHomeActive) ||
+              (item.id === 'search' && isSearchActive) ||
+              (item.id === 'scan' && isScanActive) ||
+              (item.id === 'profile' && isProfileActive);
 
             if (item.isEmphasized) {
               return (
@@ -134,3 +128,4 @@ export default function Navigation({ currentRoute, onNavigate }) {
     </>
   );
 }
+

@@ -16,19 +16,19 @@ import {
   Plus,
   ArrowRight,
   ArrowLeft,
-  CheckCircle2,
   Check,
+  CheckCircle2,
   ShieldCheck,
   Ban,
   User,
   Calendar,
-  X
+  X,
+  Edit2
 } from 'lucide-react';
 import { useProfile } from '../../context/ProfileContext';
 import { THEME } from '../../styles/tokens';
 import PillButton from '../../components/common/PillButton';
 import Card from '../../components/common/Card';
-import IconTile from '../../components/common/IconTile';
 import './OnboardingScreen.css';
 
 // Allergen Icon Map
@@ -52,7 +52,7 @@ const CONDITION_ICONS = {
   Sparkle,
 };
 
-export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
+export default function OnboardingScreen({ onNavigate, initialStep = 1 }) {
   const {
     profile,
     setName,
@@ -69,26 +69,45 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
   const paramOther = urlParams.get('other');
 
   const [step, setStep] = useState(() => {
-    if (paramStep !== null) return parseInt(paramStep, 10);
+    if (paramStep !== null) {
+      const parsed = parseInt(paramStep, 10);
+      return parsed >= 1 && parsed <= 4 ? parsed : 1;
+    }
     return initialStep;
   });
+
   const [customInput, setCustomInput] = useState('');
   const [showOtherInput, setShowOtherInput] = useState(paramOther === '1' || paramOther === 'true');
+  const [validationError, setValidationError] = useState('');
 
   const handleNext = () => {
-    if (step < 4) {
-      setStep(step + 1);
+    setValidationError('');
+    if (step === 1) {
+      if (!profile.name?.trim()) {
+        setValidationError('Please enter your name to continue.');
+        return;
+      }
+      setStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
+    } else if (step === 2) {
+      setStep(3);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (step === 3) {
+      setStep(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (step === 4) {
       completeOnboarding();
-      onNavigate('/');
+      onNavigate('/dashboard');
     }
   };
 
   const handleBack = () => {
-    if (step > 0) {
+    setValidationError('');
+    if (step > 1) {
       setStep(step - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      onNavigate('/');
     }
   };
 
@@ -103,97 +122,57 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
 
   return (
     <div className="onboarding-flow-screen anim-spring-pop">
-      {/* Progress Stepper (Steps 1 through 4) */}
-      {step > 0 && (
-        <header className="onboarding-progress-bar">
-          <div className="progress-top-row">
-            <button
-              type="button"
-              className="step-back-btn"
-              onClick={handleBack}
-              aria-label="Previous Step"
-            >
-              <ArrowLeft size={16} />
-              <span>Back</span>
-            </button>
-            <span className="step-counter">Step {step} of 4</span>
-          </div>
-          <div className="progress-track">
-            <div
-              className="progress-fill"
-              style={{ width: `${(step / 4) * 100}%` }}
-            ></div>
-          </div>
-        </header>
-      )}
+      {/* Top Header with Progress Indicator (Steps 1 to 4) */}
+      <header className="onboarding-progress-bar">
+        <div className="progress-top-row">
+          <button
+            type="button"
+            className="step-back-btn"
+            onClick={handleBack}
+            aria-label="Previous Step"
+          >
+            <ArrowLeft size={16} />
+            <span>{step === 1 ? 'Home' : 'Back'}</span>
+          </button>
+          <span className="step-counter">Step {step} of 4</span>
+        </div>
+        <div className="progress-track">
+          <div
+            className="progress-fill"
+            style={{ width: `${(step / 4) * 100}%` }}
+          ></div>
+        </div>
+      </header>
 
       {/* ======================================================== */}
-      {/* STEP 0: Welcome / Landing Page                          */}
-      {/* ======================================================== */}
-      {step === 0 && (
-        <section className="onboarding-step step-welcome">
-          <div className="welcome-hero-card">
-            <div className="welcome-brand-badge">
-              <div className="pulse-dot"></div>
-              <span>NutriLens SafeEats</span>
-            </div>
-
-            <h1 className="welcome-main-title">
-              Safe choices, made simple.
-            </h1>
-
-            <p className="welcome-main-subtext">
-              Set your personal allergy and health boundaries once. Scan any packaged food
-              barcode or photograph the label for instant, plain-language risk evaluations.
-            </p>
-
-            <div className="welcome-feature-pills">
-              <span className="feature-chip">🛡️ 9 Major Allergens</span>
-              <span className="feature-chip">❤️ Heart & Glucose Checks</span>
-              <span className="feature-chip">📷 Instant Barcode & OCR</span>
-            </div>
-
-            <div className="welcome-actions">
-              <PillButton
-                variant="primary"
-                size="lg"
-                iconRight={ArrowRight}
-                onClick={handleNext}
-                fullWidth
-              >
-                Get Started
-              </PillButton>
-              <span className="welcome-privacy-note">
-                No account required — profile data lives privately on your device.
-              </span>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ======================================================== */}
-      {/* STEP 1: Name + Age Intake                                */}
+      {/* STEP 1: Basic Information                                */}
       {/* ======================================================== */}
       {step === 1 && (
-        <section className="onboarding-step step-name-age">
+        <section className="onboarding-step step-name-age anim-spring-pop">
           <div className="step-header">
-            <span className="step-eyebrow">Personal Details</span>
-            <h1 className="step-heading">What should we call you?</h1>
+            <span className="step-eyebrow">Personal Information</span>
+            <h1 className="step-heading">Let's personalize NutriLens.</h1>
             <p className="step-sub">
-              Your name personalizes your food warnings and dashboard greetings.
+              Tell us a little about yourself so we can make your food insights more relevant.
             </p>
           </div>
 
           <Card className="intake-form-card">
+            {validationError && (
+              <div className="validation-error-msg">
+                <span>{validationError}</span>
+              </div>
+            )}
+
             <div className="form-field-group">
-              <label className="field-lbl">Your Name</label>
+              <label className="field-lbl">Name</label>
               <div className="input-with-icon">
                 <User size={18} className="field-glyph" />
                 <input
                   type="text"
                   className="modern-text-input"
-                  placeholder="e.g. Yunus, Alex, Sam..."
-                  value={profile.name}
+                  placeholder="Enter your name"
+                  value={profile.name || ''}
                   onChange={(e) => setName(e.target.value)}
                   autoFocus
                 />
@@ -201,13 +180,13 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
             </div>
 
             <div className="form-field-group">
-              <label className="field-lbl">Age (Optional)</label>
+              <label className="field-lbl">Age</label>
               <div className="input-with-icon">
                 <Calendar size={18} className="field-glyph" />
                 <input
                   type="number"
                   className="modern-text-input"
-                  placeholder="e.g. 24"
+                  placeholder="Enter your age"
                   value={profile.age || ''}
                   onChange={(e) => setAge(e.target.value)}
                   min="1"
@@ -215,7 +194,7 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
                 />
               </div>
               <span className="field-hint">
-                Helps refine daily sodium and sugar thresholds.
+                Helps calibrate daily sodium and added sugar benchmarks.
               </span>
             </div>
           </Card>
@@ -228,23 +207,22 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
               onClick={handleNext}
               fullWidth
             >
-              Continue to Allergens
+              Continue →
             </PillButton>
           </div>
         </section>
       )}
 
       {/* ======================================================== */}
-      {/* STEP 2: 9 Major Allergens + Other Custom Intake          */}
+      {/* STEP 2: Food Allergies                                   */}
       {/* ======================================================== */}
       {step === 2 && (
-        <section className="onboarding-step step-allergens">
+        <section className="onboarding-step step-allergens anim-spring-pop">
           <div className="step-header">
-            <span className="step-eyebrow">Allergen Safety</span>
-            <h1 className="step-heading">Any food allergies?</h1>
+            <span className="step-eyebrow">Allergen Protection</span>
+            <h1 className="step-heading">What should we watch out for?</h1>
             <p className="step-sub">
-              Tap any ingredients that trigger allergic reactions. NutriLens will flag these
-              with high-priority warnings.
+              Select any food allergens that are relevant to you.
             </p>
           </div>
 
@@ -253,102 +231,127 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
               const Icon = ALLERGEN_ICONS[alg.icon] || Sparkles;
               const isSelected = profile.allergies.includes(alg.id);
               return (
-                <IconTile
+                <div
                   key={alg.id}
-                  icon={Icon}
-                  label={alg.label}
-                  desc={alg.desc}
-                  selected={isSelected}
-                  selectionTone="risk"
-                  onToggle={() => toggleAllergy(alg.id)}
-                />
+                  className={`onboarding-large-tile ${isSelected ? 'selected-tile' : ''}`}
+                  onClick={() => toggleAllergy(alg.id)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="tile-top-row">
+                    <div className="tile-icon-bubble">
+                      <Icon size={24} />
+                    </div>
+                    {isSelected && (
+                      <span className="tile-selected-badge">
+                        <Check size={12} strokeWidth={3} /> Selected
+                      </span>
+                    )}
+                  </div>
+                  <div className="tile-text-wrap">
+                    <h3 className="tile-main-label">{alg.label}</h3>
+                    <p className="tile-detail-desc">{alg.desc}</p>
+                  </div>
+                </div>
               );
             })}
 
-            {/* Custom / User-added Allergens */}
-            {profile.customAllergens.map((custom) => {
+            {/* Custom User-Added Allergens */}
+            {profile.customAllergens?.map((custom) => {
               const isSelected = profile.allergies.includes(custom.id);
               return (
-                <div key={custom.id} className="custom-tile-wrapper">
-                  <IconTile
-                    icon={Sparkles}
-                    label={`Custom: ${custom.label}`}
-                    desc="User-defined custom allergen"
-                    selected={isSelected}
-                    limitedCoverage={true}
-                    limitedNote={custom.limitedNote}
-                    selectionTone="risk"
-                    onToggle={() => toggleAllergy(custom.id)}
-                  />
+                <div
+                  key={custom.id}
+                  className={`onboarding-large-tile custom-added-tile ${isSelected ? 'selected-tile' : ''}`}
+                  onClick={() => toggleAllergy(custom.id)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="tile-top-row">
+                    <div className="tile-icon-bubble">
+                      <Sparkles size={24} />
+                    </div>
+                    <div className="custom-tile-badges">
+                      <span className="limited-cov-tag">Limited coverage</span>
+                      {isSelected && (
+                        <span className="tile-selected-badge">
+                          <Check size={12} strokeWidth={3} /> Selected
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="tile-text-wrap">
+                    <h3 className="tile-main-label">{custom.label}</h3>
+                    <p className="tile-detail-desc">Custom keyword monitoring</p>
+                  </div>
                   <button
                     type="button"
-                    className="remove-custom-btn"
+                    className="delete-custom-tag"
                     onClick={(e) => {
                       e.stopPropagation();
                       removeCustomAllergen(custom.id);
                     }}
                     title="Remove custom allergen"
                   >
-                    <X size={12} />
+                    <X size={13} />
                   </button>
                 </div>
               );
             })}
 
-            {/* "Other" Option Tile */}
+            {/* "Don't see yours? Add another allergen" Card */}
             <div
-              className={`nutri-icon-tile tile-other-trigger ${showOtherInput ? 'other-active' : ''}`}
+              className={`onboarding-large-tile add-other-card ${showOtherInput ? 'other-drawer-open' : ''}`}
               onClick={() => setShowOtherInput(true)}
               role="button"
               tabIndex={0}
             >
               <div className="tile-top-row">
-                <div className="tile-icon-bubble">
-                  <Plus size={22} />
+                <div className="tile-icon-bubble add-bubble">
+                  <Plus size={24} />
                 </div>
-                <span className="limited-coverage-badge">Custom</span>
+                <span className="add-other-tag">Custom</span>
               </div>
-              <div className="tile-body">
-                <h3 className="tile-label">Other Allergen</h3>
-                <p className="tile-desc">Add an ingredient not listed above (e.g. Mustard, Kiwi)</p>
+              <div className="tile-text-wrap">
+                <h3 className="tile-main-label">Don't see yours?</h3>
+                <p className="tile-detail-desc">Add another allergen (e.g. Mustard, Kiwi, Celery)</p>
               </div>
             </div>
           </div>
 
-          {/* Inline Text Entry for "Other" Allergen with Honest Limitation Notice */}
+          {/* Revealable Custom Allergen Input Drawer */}
           {showOtherInput && (
-            <Card className="custom-allergen-drawer anim-spring-pop">
-              <div className="drawer-header">
-                <h3 className="drawer-title">Add Custom Allergen</h3>
+            <Card className="custom-entry-drawer anim-spring-pop">
+              <div className="drawer-top-bar">
+                <h3 className="drawer-title">Add custom food allergen</h3>
                 <button
                   type="button"
-                  className="close-drawer-btn"
+                  className="drawer-close-btn"
                   onClick={() => setShowOtherInput(false)}
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <form onSubmit={handleAddCustom} className="custom-input-form">
+              <form onSubmit={handleAddCustom} className="custom-entry-form">
                 <input
                   type="text"
-                  className="custom-text-field"
-                  placeholder="e.g. Strawberries, Celery, Mustard..."
+                  className="custom-allergen-input"
+                  placeholder="Enter allergen name..."
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
                   autoFocus
                 />
                 <PillButton type="submit" variant="primary" size="md">
-                  Add
+                  Add Allergen
                 </PillButton>
               </form>
 
-              {/* Honest trust notice required by Mission 5 */}
-              <div className="trust-coverage-notice">
-                <span className="notice-icon">⚠️</span>
-                <p className="notice-text">
-                  <strong>Limited coverage notice:</strong> Custom allergens use keyword matching,
-                  which may not catch complex chemical derivatives or uncommon scientific names.
+              {/* Required honest coverage limitation note */}
+              <div className="honest-coverage-callout">
+                <span className="callout-icon">⚠️</span>
+                <p className="callout-text">
+                  <strong>Automated coverage may be limited:</strong> Custom allergens use keyword matching, which may not recognize complex scientific designations or uncommon derivative compounds.
                 </p>
               </div>
             </Card>
@@ -362,22 +365,22 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
               onClick={handleNext}
               fullWidth
             >
-              Continue to Conditions
+              Continue →
             </PillButton>
           </div>
         </section>
       )}
 
       {/* ======================================================== */}
-      {/* STEP 3: Health Conditions Intake                         */}
+      {/* STEP 3: Dietary Conditions                               */}
       {/* ======================================================== */}
       {step === 3 && (
-        <section className="onboarding-step step-conditions">
+        <section className="onboarding-step step-conditions anim-spring-pop">
           <div className="step-header">
-            <span className="step-eyebrow">Health & Nutrition</span>
-            <h1 className="step-heading">Any dietary conditions?</h1>
+            <span className="step-eyebrow">Health Guidelines</span>
+            <h1 className="step-heading">Any dietary conditions we should consider?</h1>
             <p className="step-sub">
-              We monitor nutrients like sodium and sugar against established clinical guidelines.
+              Choose the conditions you'd like NutriLens to consider when interpreting food information.
             </p>
           </div>
 
@@ -385,30 +388,64 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
             {THEME.conditions.map((cond) => {
               const Icon = CONDITION_ICONS[cond.icon] || Activity;
               const isSelected = profile.conditions.includes(cond.id);
+              const isLimited = !cond.isFullySupported;
+
               return (
-                <IconTile
+                <div
                   key={cond.id}
-                  icon={Icon}
-                  label={cond.label}
-                  desc={cond.desc}
-                  selected={isSelected}
-                  limitedCoverage={!cond.isFullySupported}
-                  limitedNote={cond.limitedNote}
-                  selectionTone="caution"
-                  onToggle={() => toggleCondition(cond.id)}
-                />
+                  className={`onboarding-large-tile ${isSelected ? 'selected-tile condition-selected' : ''} ${isLimited ? 'limited-condition-tile' : ''}`}
+                  onClick={() => toggleCondition(cond.id)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="tile-top-row">
+                    <div className="tile-icon-bubble">
+                      <Icon size={24} />
+                    </div>
+                    <div className="condition-badges-row">
+                      {isLimited && (
+                        <span className="limited-cov-tag">Limited coverage</span>
+                      )}
+                      {isSelected && (
+                        <span className="tile-selected-badge">
+                          <Check size={12} strokeWidth={3} /> Selected
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="tile-text-wrap">
+                    <h3 className="tile-main-label">{cond.label}</h3>
+                    <p className="tile-detail-desc">{cond.desc}</p>
+                    {isLimited && cond.limitedNote && (
+                      <p className="tile-limited-explanation">{cond.limitedNote}</p>
+                    )}
+                  </div>
+                </div>
               );
             })}
 
-            {/* "None of these" Tile */}
-            <IconTile
-              icon={Ban}
-              label="None of these"
-              desc="I do not have specific dietary condition requirements"
-              selected={profile.conditions.length === 0}
-              selectionTone="caution"
-              onToggle={() => toggleCondition('none')}
-            />
+            {/* "None of these" Card */}
+            <div
+              className={`onboarding-large-tile ${profile.conditions.length === 0 ? 'selected-tile' : ''}`}
+              onClick={() => toggleCondition('none')}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="tile-top-row">
+                <div className="tile-icon-bubble">
+                  <Ban size={24} />
+                </div>
+                {profile.conditions.length === 0 && (
+                  <span className="tile-selected-badge">
+                    <Check size={12} strokeWidth={3} /> Selected
+                  </span>
+                )}
+              </div>
+              <div className="tile-text-wrap">
+                <h3 className="tile-main-label">None of these</h3>
+                <p className="tile-detail-desc">I do not have specific clinical dietary requirements.</p>
+              </div>
+            </div>
           </div>
 
           <div className="step-footer-actions">
@@ -419,70 +456,129 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
               onClick={handleNext}
               fullWidth
             >
-              Review My Profile
+              Continue →
             </PillButton>
           </div>
         </section>
       )}
 
       {/* ======================================================== */}
-      {/* STEP 4: "You're All Set" Summary Screen                 */}
+      {/* STEP 4: Review Profile                                   */}
       {/* ======================================================== */}
       {step === 4 && (
-        <section className="onboarding-step step-summary">
-          <div className="summary-header">
-            <div className="summary-check-bubble">
-              <CheckCircle2 size={36} color="#153C19" />
-            </div>
-            <h1 className="summary-title">You're all set, {profile.name || 'Friend'}!</h1>
-            <p className="summary-subtitle">
-              Your safety profile is configured and ready to inspect foods.
+        <section className="onboarding-step step-summary anim-spring-pop">
+          <div className="step-header">
+            <span className="step-eyebrow">Review & Confirm</span>
+            <h1 className="step-heading">Your NutriLens profile</h1>
+            <p className="step-sub">
+              Your profile powers personalized food insights.
             </p>
           </div>
 
-          <Card className="summary-details-card">
-            <div className="summary-section">
-              <span className="summary-section-lbl">Active Allergens ({profile.allergies.length})</span>
-              {profile.allergies.length > 0 ? (
-                <div className="summary-chips-wrap">
-                  {profile.allergies.map((algId) => {
+          <Card className="review-profile-card">
+            {/* About You Section */}
+            <div className="review-row">
+              <div className="review-row-header">
+                <div className="review-title-group">
+                  <User size={18} className="review-section-glyph" />
+                  <h3 className="review-section-title">About You</h3>
+                </div>
+                <button
+                  type="button"
+                  className="review-edit-btn"
+                  onClick={() => setStep(1)}
+                >
+                  <Edit2 size={13} /> Edit
+                </button>
+              </div>
+              <div className="review-values-group">
+                <div className="review-item">
+                  <span className="review-kicker">Name:</span>
+                  <span className="review-val">{profile.name || 'Friend'}</span>
+                </div>
+                {profile.age && (
+                  <div className="review-item">
+                    <span className="review-kicker">Age:</span>
+                    <span className="review-val">{profile.age}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="review-divider"></div>
+
+            {/* Allergies Section */}
+            <div className="review-row">
+              <div className="review-row-header">
+                <div className="review-title-group">
+                  <ShieldAlert size={18} className="review-section-glyph" />
+                  <h3 className="review-section-title">Allergies</h3>
+                </div>
+                <button
+                  type="button"
+                  className="review-edit-btn"
+                  onClick={() => setStep(2)}
+                >
+                  <Edit2 size={13} /> Edit
+                </button>
+              </div>
+              <div className="review-chips-cloud">
+                {profile.allergies.length > 0 ? (
+                  profile.allergies.map((algId) => {
                     const preset = THEME.allergens.find((a) => a.id === algId);
-                    const custom = profile.customAllergens.find((a) => a.id === algId);
+                    const custom = profile.customAllergens?.find((c) => c.id === algId);
                     const label = preset?.label || custom?.label || algId;
                     const isCustom = Boolean(custom);
 
                     return (
-                      <span key={algId} className={`summary-chip ${isCustom ? 'custom-chip' : ''}`}>
+                      <span key={algId} className={`review-tag-chip ${isCustom ? 'custom-tag' : ''}`}>
                         {label}
-                        {isCustom && <span className="chip-limited-tag">Limited</span>}
+                        {isCustom && <span className="chip-mini-badge">Limited</span>}
                       </span>
                     );
-                  })}
-                </div>
-              ) : (
-                <span className="summary-none">No allergens selected</span>
-              )}
+                  })
+                ) : (
+                  <span className="review-empty-note">No allergies selected</span>
+                )}
+              </div>
             </div>
 
-            <div className="summary-divider"></div>
+            <div className="review-divider"></div>
 
-            <div className="summary-section">
-              <span className="summary-section-lbl">Monitored Conditions ({profile.conditions.length})</span>
-              {profile.conditions.length > 0 ? (
-                <div className="summary-chips-wrap">
-                  {profile.conditions.map((condId) => {
+            {/* Dietary Conditions Section */}
+            <div className="review-row">
+              <div className="review-row-header">
+                <div className="review-title-group">
+                  <HeartPulse size={18} className="review-section-glyph" />
+                  <h3 className="review-section-title">Dietary Conditions</h3>
+                </div>
+                <button
+                  type="button"
+                  className="review-edit-btn"
+                  onClick={() => setStep(3)}
+                >
+                  <Edit2 size={13} /> Edit
+                </button>
+              </div>
+              <div className="review-chips-cloud">
+                {profile.conditions.length > 0 ? (
+                  profile.conditions.map((condId) => {
                     const cond = THEME.conditions.find((c) => c.id === condId);
+                    const isLimited = !cond?.isFullySupported;
                     return (
-                      <span key={condId} className={`summary-chip condition-chip ${!cond?.isFullySupported ? 'limited-condition-chip' : ''}`}>
+                      <span
+                        key={condId}
+                        className={`review-tag-chip condition-tag ${isLimited ? 'limited-condition-tag' : ''}`}
+                      >
                         {cond?.label || condId}
-                        {!cond?.isFullySupported && <span className="chip-limited-tag">Limited</span>}
+                        {isLimited && <span className="chip-mini-badge">Limited</span>}
                       </span>
                     );
-                  })}
-                </div>
-              ) : (
-                <span className="summary-none">No dietary conditions tracked</span>
-              )}
+                  })
+                ) : (
+                  <span className="review-empty-note">None of these (No condition restrictions)</span>
+                )}
+              </div>
             </div>
           </Card>
 
@@ -494,7 +590,7 @@ export default function OnboardingScreen({ onNavigate, initialStep = 0 }) {
               onClick={handleNext}
               fullWidth
             >
-              Go to Dashboard
+              Finish Setup →
             </PillButton>
           </div>
         </section>

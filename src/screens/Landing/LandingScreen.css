@@ -1,0 +1,945 @@
+/* NutriLens Landing Page Styles */
+
+.landing-page {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem 1.25rem;
+  color: var(--color-text-primary, #171715);
+  font-family: inherit;
+}
+
+/* 1. Global Navigation Bar */
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 1rem 0;
+  background: rgba(250, 248, 245, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.landing-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.landing-brand .brand-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #171715;
+}
+
+.landing-brand .brand-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  background: #ECEAE2;
+  color: #6B6862;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.landing-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.landing-link {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #6B6862;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.landing-link:hover {
+  color: #171715;
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.landing-signin-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #171715;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.landing-signin-btn:hover {
+  background: #ECEAE2;
+}
+
+/* 2. Hero Section */
+.landing-hero-section {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 3rem;
+  padding: 2.5rem 0 4rem 0;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #403D37;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.badge-sparkle {
+  color: #22C55E;
+}
+
+.hero-main-heading {
+  font-size: 3.1rem;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  color: #171715;
+  margin: 0;
+}
+
+.hero-highlight {
+  color: #2D5A27;
+  text-decoration: underline decoration-color: #E4FA75;
+  text-underline-offset: 4px;
+}
+
+.hero-subheading {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: #5A564F;
+  margin: 0;
+  max-width: 540px;
+}
+
+.hero-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.hero-secondary-btn {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #171715;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.8rem 1.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.hero-secondary-btn:hover {
+  background: #F3F1EB;
+  border-color: rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.hero-trust-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.trust-chip {
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: #F0ECE1;
+  color: #403D37;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+}
+
+/* 3. Product Analysis Visual */
+.hero-visual-container {
+  display: flex;
+  justify-content: center;
+}
+
+.interactive-phone-frame {
+  width: 100%;
+  max-width: 360px;
+  background: #FFFFFF;
+  border-radius: 36px;
+  padding: 1.25rem;
+  box-shadow: 0 24px 60px -12px rgba(24, 23, 21, 0.14), 0 8px 24px -4px rgba(24, 23, 21, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.phone-screen-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.phone-camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #F3F1EB;
+}
+
+.live-tag {
+  color: #DC2626;
+  font-weight: 700;
+}
+
+.product-tag {
+  color: #6B6862;
+}
+
+.live-verdict-card {
+  position: relative;
+  background: #FFF1F2;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 1.15rem;
+}
+
+.live-verdict-card .verdict-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 5px;
+  background: #EF4444;
+}
+
+.verdict-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.verdict-icon-bubble {
+  color: #DC2626;
+}
+
+.verdict-kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #50100C;
+}
+
+.verdict-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #50100C;
+  margin: 0 0 0.35rem 0;
+  line-height: 1.25;
+}
+
+.verdict-sentence {
+  font-size: 0.88rem;
+  color: #50100C;
+  line-height: 1.45;
+  margin: 0 0 0.6rem 0;
+}
+
+.label-clarification {
+  font-size: 0.76rem;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  color: #7A2722;
+  font-weight: 500;
+}
+
+.live-alt-preview {
+  background: #F4FDE5;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+}
+
+.alt-kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #14381B;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.alt-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #163A1D;
+  margin: 0;
+}
+
+/* Section Header Shared */
+.section-header-centered {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 2.5rem auto;
+}
+
+.section-eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #787369;
+  margin-bottom: 0.5rem;
+}
+
+.section-eyebrow.light {
+  color: #E4FA75;
+}
+
+.section-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: #171715;
+  margin: 0 0 0.75rem 0;
+}
+
+.section-desc {
+  font-size: 1.05rem;
+  color: #6B6862;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* 4. Problem Section */
+.landing-problem-section {
+  padding: 4rem 0;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.problem-card {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.problem-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.red-tone {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.amber-tone {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.green-tone {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.problem-item-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.problem-item-text {
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: #6B6862;
+  margin: 0;
+}
+
+/* 5. The NutriLens Difference */
+.landing-difference-section {
+  padding: 2rem 0;
+}
+
+.difference-banner {
+  background: #171715;
+  color: #FFFFFF;
+  border-radius: 32px;
+  padding: 3rem;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.difference-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #FFFFFF;
+  margin: 0 0 1rem 0;
+}
+
+.difference-text {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #D6D3CB;
+  margin: 0;
+}
+
+.difference-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.metric-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 1.15rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #E4FA75;
+}
+
+.metric-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+/* 6. How It Works */
+.landing-steps-section {
+  padding: 4.5rem 0;
+}
+
+.steps-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.step-feature-card {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #171715;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.step-body {
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: #6B6862;
+  margin: 0;
+}
+
+/* 7. Interactive Demonstration */
+.landing-demo-section {
+  padding: 3rem 0;
+}
+
+.demo-toggle-pills {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.demo-pill {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.6rem 1.2rem;
+  border-radius: 9999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #403D37;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.demo-pill:hover {
+  background: #F3F1EB;
+}
+
+.demo-pill.active {
+  background: #171715;
+  color: #FFFFFF;
+  border-color: #171715;
+}
+
+.demo-display-wrapper {
+  max-width: 680px;
+  margin: 2rem auto 0 auto;
+}
+
+.interactive-demo-card {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.25s ease;
+}
+
+.interactive-demo-card.tone-risk {
+  border-left: 6px solid #EF4444;
+}
+
+.interactive-demo-card.tone-caution {
+  border-left: 6px solid #F59E0B;
+}
+
+.interactive-demo-card.tone-safe {
+  border-left: 6px solid #22C55E;
+}
+
+.demo-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.demo-target-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #171715;
+}
+
+.demo-verdict-pill {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.demo-verdict-pill.demo-risk {
+  background: #FECDD3;
+  color: #50100C;
+}
+
+.demo-verdict-pill.demo-caution {
+  background: #FDE68A;
+  color: #452600;
+}
+
+.demo-verdict-pill.demo-safe {
+  background: #E4FA75;
+  color: #163A1D;
+}
+
+.demo-main-body {
+  display: flex;
+  gap: 1.15rem;
+  align-items: flex-start;
+}
+
+.demo-icon-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #F3F1EB;
+  color: #171715;
+}
+
+.tone-risk .demo-icon-ring {
+  background: #FFF1F2;
+  color: #DC2626;
+}
+
+.tone-caution .demo-icon-ring {
+  background: #FFFBEB;
+  color: #D97706;
+}
+
+.tone-safe .demo-icon-ring {
+  background: #F4FDE5;
+  color: #16A34A;
+}
+
+.demo-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.demo-verdict-headline {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.demo-sentence {
+  font-size: 0.94rem;
+  line-height: 1.5;
+  color: #403D37;
+  margin: 0;
+}
+
+.demo-scientific-pill {
+  display: inline-block;
+  font-size: 0.78rem;
+  background: #F3F1EB;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  color: #6B6862;
+  font-weight: 500;
+  margin-top: 0.35rem;
+  width: fit-content;
+}
+
+.demo-alt-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  background: #F9F8F5;
+  border-top: 1px solid #ECEAE2;
+  padding-top: 0.85rem;
+  color: #171715;
+}
+
+.alt-sparkle {
+  color: #22C55E;
+}
+
+/* 8. Feature Showcase Bento Grid */
+.landing-features-grid-section {
+  padding: 4rem 0;
+}
+
+.features-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.bento-card {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.bento-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #F3F1EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #171715;
+}
+
+.bento-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.bento-desc {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #6B6862;
+  margin: 0;
+}
+
+/* 9. Safety & Clinical Trust Section */
+.landing-trust-section {
+  padding: 2rem 0;
+}
+
+.trust-card {
+  padding: 2.5rem;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trust-icon-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #E4FA75;
+  color: #163A1D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.trust-heading {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.trust-desc {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #5A564F;
+  margin: 0;
+  max-width: 650px;
+}
+
+.trust-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 580px;
+}
+
+.trust-bullet-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: #171715;
+}
+
+/* 10. Final Call to Action */
+.landing-final-cta-section {
+  padding: 4rem 0 2rem 0;
+}
+
+.final-cta-card {
+  background: #171715;
+  color: #FFFFFF;
+  border-radius: 32px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.final-cta-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.final-cta-sub {
+  font-size: 1.1rem;
+  color: #D6D3CB;
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.55;
+}
+
+.final-cta-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.final-signin-link {
+  background: transparent;
+  border: none;
+  color: #E4FA75;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 11. Footer */
+.landing-footer {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 2.5rem;
+}
+
+.footer-left {
+  max-width: 320px;
+}
+
+.footer-brand-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #171715;
+}
+
+.footer-tagline {
+  font-size: 0.88rem;
+  color: #787369;
+  line-height: 1.5;
+  margin-top: 0.4rem;
+}
+
+.footer-disclaimer {
+  max-width: 540px;
+  font-size: 0.8rem;
+  color: #9E9B95;
+  line-height: 1.5;
+}
+
+.copyright-text {
+  margin-top: 0.5rem;
+  color: #787369;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 900px) {
+  .landing-hero-section {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 2.5rem;
+  }
+
+  .hero-content {
+    align-items: center;
+  }
+
+  .hero-subheading {
+    text-align: center;
+  }
+
+  .hero-trust-chips {
+    justify-content: center;
+  }
+
+  .problem-grid,
+  .steps-cards-row,
+  .features-bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .difference-banner {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .landing-nav-links {
+    display: none;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .hero-main-heading {
+    font-size: 2.3rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .final-cta-title {
+    font-size: 1.85rem;
+  }
+
+  .final-cta-card {
+    padding: 2.5rem 1.25rem;
+  }
+}
